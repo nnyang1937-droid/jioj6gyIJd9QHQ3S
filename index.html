@@ -1,0 +1,2978 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스핑크스의 황금 금고</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(212, 175, 55, 0.14), transparent 55%),
+      radial-gradient(ellipse at 85% 100%, rgba(31, 111, 120, 0.18), transparent 50%),
+      linear-gradient(170deg, #191006, #221509 40%, #140d05);
+    color: #e8d9b0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 4px 12px 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .container { width: 100%; max-width: 480px; min-width: 0; }
+
+  header {
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+    position: relative;
+  }
+  header .vault-ornament {
+    font-size: 1.2rem;
+    letter-spacing: 8px;
+    color: #d4af37;
+    text-shadow: 0 0 18px rgba(212, 175, 55, 0.5);
+  }
+  header h1 {
+    font-size: 1.25rem;
+    color: #f0c75e;
+    margin-top: 2px;
+    letter-spacing: 4px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  }
+  header .desc {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #b7a477;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: linear-gradient(180deg, rgba(60, 44, 18, 0.5), rgba(28, 19, 8, 0.65));
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(240, 199, 94, 0.12);
+  }
+
+  .stat-grid { display: flex; gap: 8px; }
+  .stat {
+    flex: 1;
+    background: rgba(15, 10, 4, 0.55);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+  }
+  .stat .slabel { font-size: 0.7rem; color: #9c8a5f; }
+  .stat .svalue { font-size: 0.95rem; font-weight: 700; color: #f0c75e; margin-top: 2px; }
+
+  .run-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #e8c25c, #b8912e);
+    color: #1a1206;
+    transition: filter 0.1s ease, transform 0.1s ease;
+  }
+  .run-btn:hover { filter: brightness(1.1); }
+  .run-btn:active { transform: scale(0.98); }
+
+  .hidden { display: none !important; }
+
+  /* 상단 링크 바 (빙고+샤인업) - 한 줄 가로 배치, 컨테이너 폭 */
+  .side-links {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .side-link {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #e8d9b0;
+    background: rgba(20, 13, 5, 0.82);
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    border-radius: 10px;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .side-link:hover {
+    background: rgba(35, 22, 9, 0.92);
+    border-color: #f0c75e;
+    color: #f0c75e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  .side-link .sl-icon { font-size: 0.85rem; }
+
+  /* 통계 표 */
+  .stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .stats-table th, .stats-table td {
+    padding: 7px 8px;
+    text-align: right;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.12);
+    white-space: nowrap;
+  }
+  .stats-table th { color: #9c8a5f; font-weight: 600; font-size: 0.75rem; }
+  .stats-table td:first-child, .stats-table th:first-child { text-align: center; }
+  .stats-table td:nth-child(2), .stats-table th:nth-child(2) { text-align: left; }
+  .stats-table tr:last-child td { border-bottom: none; }
+  .stats-table tr.total-row td {
+    border-top: 1px solid rgba(212, 175, 55, 0.3);
+    color: #f0c75e;
+    font-weight: 700;
+  }
+  .stats-table .mono { font-variant-numeric: tabular-nums; }
+.stats-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .stats-head h3 { font-size: 1rem; color: #b7a477; }
+  .stats-head .note { font-size: 0.75rem; color: #7a6a44; }
+
+  .stats-table tr.highlight-row td {
+    background: rgba(212, 175, 55, 0.16);
+    animation: rowFlash 0.6s ease;
+  }
+  .stats-table tr.highlight-row td:first-child { color: #f0c75e; font-weight: 700; }
+  @keyframes rowFlash {
+    0%   { background: rgba(212, 175, 55, 0.5); transform: scale(1.02); }
+    100% { background: rgba(212, 175, 55, 0.16); transform: scale(1); }
+  }
+
+  .guess-section { text-align: center; }
+  .guess-section .mode-tag {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: #e8c25c;
+    letter-spacing: 2px;
+  }
+  .prompt { font-size: 0.9rem; color: #b7a477; margin-bottom: 4px; }
+
+  .prob-strip { display: flex; gap: 8px; margin: 10px 0 4px; }
+  .prob-item {
+    flex: 1;
+    background: rgba(15, 10, 4, 0.55);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 10px;
+    padding: 7px 6px;
+    text-align: center;
+  }
+  .prob-item .plabel { font-size: 0.68rem; color: #9c8a5f; display: block; }
+  .prob-item .pvalue {
+    display: block;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-top: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .prob-item.cum { background: rgba(212, 175, 55, 0.1); border-color: rgba(212, 175, 55, 0.35); }
+  .prob-item.cum .pvalue { color: #f0c75e; }
+  .prob-item .pvalue.flash { animation: probFlash 0.5s ease; }
+  .prob-strip.disabled {
+    opacity: 0.35;
+    filter: grayscale(0.7);
+    pointer-events: none;
+  }
+  @keyframes probFlash {
+    0%   { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
+  .reward-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 10px;
+    cursor: pointer;
+    background: rgba(212, 175, 55, 0.1);
+    color: #e8c25c;
+    transition: filter 0.1s ease;
+  }
+  .reward-btn:hover { filter: brightness(1.15); }
+
+  .reward-panel {
+    margin-top: 10px;
+    padding: 12px;
+    background: rgba(15, 10, 4, 0.55);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 12px;
+    animation: panelOpen 0.25s ease;
+  }
+  @keyframes panelOpen {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .reward-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .reward-head .reward-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #f0c75e;
+  }
+  .reward-head .toggle-btn { padding: 5px 12px; font-size: 0.78rem; font-weight: 700;
+    border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 8px; cursor: pointer;
+    background: transparent; color: #e8c25c; transition: background 0.15s ease; }
+  .reward-head .toggle-btn:hover { background: rgba(212, 175, 55, 0.15); }
+  .reward-head-btns { display: flex; gap: 6px; }
+  .close-btn {
+    border: none !important;
+    background: linear-gradient(180deg, #7c2d2d, #5a1f1f) !important;
+    color: #ffd9d9 !important;
+    font-weight: 800;
+    padding: 6px 14px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+  }
+  .close-btn:hover {
+    background: linear-gradient(180deg, #933636, #6b2626) !important;
+    filter: brightness(1.15);
+  }
+  .reward-table-wrap { max-height: 240px; overflow: hidden; min-width: 0; }
+  .reward-table { width: 100%; table-layout: fixed; max-width: 100%; min-width: 0; }
+  .reward-table th, .reward-table td,
+  .reward-table th:first-child, .reward-table td:first-child,
+  .reward-table th:nth-child(2), .reward-table td:nth-child(2),
+  .reward-table th:nth-child(3), .reward-table td:nth-child(3),
+  .reward-table th:nth-child(4), .reward-table td:nth-child(4) {
+    font-size: 0.72rem;
+    padding: 5px 4px;
+    text-align: center !important;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .reward-table thead th {
+    background: rgba(212, 175, 55, 0.1);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  }
+  .reward-table thead th.active-col {
+    background: rgba(212, 175, 55, 0.28);
+    color: #fff3c4;
+    font-weight: 700;
+    animation: colFlash 0.6s ease;
+  }
+  .reward-table tbody td.active-col {
+    background: rgba(212, 175, 55, 0.14);
+    color: #f0c75e;
+  }
+  @keyframes colFlash {
+    0%   { background: rgba(212, 175, 55, 0.55); }
+    100% { background: rgba(212, 175, 55, 0.28); }
+  }
+
+  .guess {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #f0c75e;
+    line-height: 1.2;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    text-shadow: 0 0 22px rgba(212, 175, 55, 0.45);
+  }
+  .guess.pop { animation: pop 0.35s ease; }
+  @keyframes pop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.12); color: #fff7dd; }
+    100% { transform: scale(1); }
+  }
+  .guess .dcol {
+    text-align: center;
+    line-height: 1.1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .guess .dcol .arr-box {
+    height: 1em;
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1em;
+  }
+  .guess .dcol .arr { font-variant-numeric: tabular-nums; }
+  .guess .dcol .arr.up { color: #f87171; }
+  .guess .dcol .arr.down { color: #60a5fa; }
+  .guess .dcol .dnum { line-height: 1.1; }
+  .guess-hint { font-size: 0.85rem; color: #b7a477; margin-top: 4px; }
+
+
+  /* 범위 바 추측 위치 마커 */
+  .gmarker {
+    position: absolute;
+    top: -4px;
+    width: 6px;
+    height: 16px;
+    background: #fff7dd;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+    transform: translateX(-50%);
+    transition: left 0.25s ease;
+    z-index: 2;
+    box-shadow: 0 0 6px rgba(255, 247, 221, 0.7);
+  }
+
+  /* 결과 통계 & 공유 */
+  .result-stats {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #9c8a5f;
+    margin-top: 12px;
+  }
+  .share-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 9px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 10px;
+    cursor: pointer;
+    background: rgba(212, 175, 55, 0.1);
+    color: #e8c25c;
+    transition: all 0.15s;
+  }
+  .share-btn:hover { border-color: #f0c75e; background: rgba(212, 175, 55, 0.18); }
+
+  .key-hint {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #7a6a44;
+  }
+
+  /* 실시간 캡처 모드 업/다운 인디케이터 */
+  .auto-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 13px;
+    background: rgba(15, 10, 4, 0.55);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+  .auto-indicator .ai-icon {
+    font-size: 1.6rem;
+    transition: transform 0.3s ease;
+  }
+  .auto-indicator.up .ai-icon { color: #4ade80; animation: aiPop 0.4s ease; }
+  .auto-indicator.down .ai-icon { color: #60a5fa; animation: aiPop 0.4s ease; }
+  .auto-indicator .ai-label {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #e8d9b0;
+    font-variant-numeric: tabular-nums;
+  }
+  @keyframes aiPop {
+    0% { transform: scale(0.6); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+
+  /* 범위 직접 지정 */
+  .custom-range {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: rgba(15, 10, 4, 0.5);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 10px;
+  }
+  .custom-range .cr-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .custom-range .cr-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e8c25c;
+  }
+  .custom-range .cr-note {
+    font-size: 0.68rem;
+    color: #7a6a44;
+    text-align: right;
+  }
+  .custom-range .cr-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .custom-range input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    color: #e8d9b0;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 8px;
+    outline: none;
+  }
+  .custom-range input:focus { border-color: #f0c75e; }
+  .custom-range .cr-tilde { color: #9c8a5f; }
+  .custom-range .cr-apply {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #e8c25c, #b8912e);
+    color: #1a1206;
+    transition: filter 0.1s ease;
+  }
+  .custom-range .cr-apply:hover { filter: brightness(1.1); }
+
+  .info { display: flex; justify-content: space-between; margin-top: 14px; gap: 8px; }
+  .info .col { flex: 1; text-align: center; }
+  .info .label { font-size: 0.72rem; color: #9c8a5f; }
+  .info .value { font-size: 0.95rem; font-weight: 700; color: #e8d9b0; margin-top: 2px; }
+
+  .rangebar { margin-top: 10px; }
+  .bar {
+    position: relative;
+    height: 10px;
+    background: rgba(15, 10, 4, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar .cur {
+    position: absolute; top: 0; height: 100%;
+    background: linear-gradient(90deg, #d4af37, #f0c75e);
+    border-radius: 999px; transition: left 0.25s ease, width 0.25s ease;
+  }
+  .bar-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: #7a6a44; margin-top: 3px; }
+
+  .error {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(248, 113, 113, 0.14);
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    border-radius: 10px;
+    color: #fca5a5;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  #manualButtons { display: flex; flex-direction: column; gap: 10px; }
+  .buttons button, #manualButtons button {
+    padding: 12px; font-size: 1.15rem; font-weight: 700; border: none; border-radius: 13px;
+    cursor: pointer; color: #1a1206;
+    transition: transform 0.1s ease, filter 0.1s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+  .buttons button:active { transform: scale(0.97); }
+  .buttons button:hover { filter: brightness(1.08); }
+  .buttons button:disabled { opacity: 0.35; cursor: not-allowed; filter: grayscale(0.5); }
+  #btnBigger { background: linear-gradient(180deg, #7fd4a0, #3f9e6b); }
+  #btnAnswer { background: linear-gradient(180deg, #f0c75e, #c19a2c); }
+  #btnSmaller { background: linear-gradient(180deg, #7db8e8, #3f7fc2); }
+  .buttons .undo-btn {
+    background: rgba(148, 163, 184, 0.12);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    color: #cbd5e1;
+    padding: 12px;
+    font-size: 1.15rem;
+  }
+  .buttons .undo-btn:hover { background: rgba(148, 163, 184, 0.22); }
+  .buttons .undo-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .capture-controls { display: flex; gap: 8px; width: 100%; }
+  .capture-controls .cap-btn {
+    flex: 1;
+    padding: 12px; font-size: 1rem; font-weight: 700; border: none; border-radius: 10px;
+    cursor: pointer; color: #1a1206;
+    background: linear-gradient(180deg, #e8c25c, #b8942f);
+    transition: transform 0.1s ease, filter 0.1s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+  .capture-controls .cap-btn:hover { filter: brightness(1.1); }
+  .capture-controls .cap-btn:active { transform: scale(0.96); }
+  .capture-controls .cap-btn.stop-btn {
+    background: linear-gradient(180deg, #e07b6b, #b04a3a);
+    color: #fff;
+  }
+
+  .history h3 { font-size: 0.9rem; color: #b7a477; margin-bottom: 6px; }
+  .history ul { list-style: none; max-height: 140px; overflow-y: auto; }
+  .history li { display: flex; justify-content: space-between; padding: 4px 8px; font-size: 0.85rem; border-radius: 8px; }
+  .history li:nth-child(odd) { background: rgba(212, 175, 55, 0.06); }
+  .history .no { color: #7a6a44; margin-right: 10px; }
+  .res-big { color: #7fd4a0; }
+  .res-small { color: #7db8e8; }
+  .res-ok { color: #f0c75e; }
+
+  .result .emoji { text-align: center; font-size: 2.4rem; }
+  .result h2 { text-align: center; margin: 6px 0 12px; color: #f0c75e; letter-spacing: 3px; }
+  .result .row { display: flex; justify-content: space-between; padding: 7px 4px; border-bottom: 1px solid rgba(212, 175, 55, 0.12); }
+  .result .row .k { color: #9c8a5f; }
+  .result .row .v { font-weight: 700; font-size: 1rem; color: #fff; }
+  .result .rating { text-align: center; font-size: 1rem; font-weight: 700; color: #f0c75e; margin-top: 12px; }
+
+  .restart-btn {
+    display: block; width: 100%; padding: 13px; margin-top: 12px; font-size: 1.1rem; font-weight: 700;
+    border: none; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(180deg, #e8c25c, #b8912e); color: #1a1206;
+    transition: transform 0.1s ease, filter 0.1s ease;
+  }
+  .restart-btn:active { transform: scale(0.97); }
+  .restart-btn:hover { filter: brightness(1.1); }
+
+  .site-footer {
+    text-align: center;
+    padding: 14px 0 6px;
+    font-size: 0.8rem;
+    color: #7a6a44;
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+    letter-spacing: 1px;
+  }
+
+  /* 전체 보상 모달 */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    overflow-y: auto; overflow-x: hidden;
+    padding: 16px;
+    display: flex;
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(10, 6, 2, 0.82);
+    backdrop-filter: blur(4px);
+  }
+  .modal-content {
+    position: relative; z-index: 1;
+    margin: auto;
+    width: 100%; max-width: 520px;
+    max-width: calc(100vw - 32px);
+    min-width: 0;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, rgba(60, 44, 18, 0.95), rgba(28, 19, 8, 0.98));
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+    animation: panelOpen 0.25s ease;
+    overflow: hidden;
+  }
+  .modal-content .reward-table-wrap {
+    max-height: none;
+    overflow-x: hidden;
+    min-width: 0;
+  }
+  .modal-content .reward-table { width: 100%; table-layout: fixed; max-width: 100%; min-width: 0; }
+  .modal-content .reward-table th,
+  .modal-content .reward-table td,
+  .modal-content .reward-table th:first-child, .modal-content .reward-table td:first-child,
+  .modal-content .reward-table th:nth-child(2), .modal-content .reward-table td:nth-child(2),
+  .modal-content .reward-table th:nth-child(3), .modal-content .reward-table td:nth-child(3),
+  .modal-content .reward-table th:nth-child(4), .modal-content .reward-table td:nth-child(4) {
+    font-size: 0.62rem;
+    padding: 3px 3px;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-align: center !important;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .modal-content .reward-table th:nth-child(1), .modal-content .reward-table td:nth-child(1),
+  .modal-content .reward-table th:nth-child(2), .modal-content .reward-table td:nth-child(2),
+  .modal-content .reward-table th:nth-child(3), .modal-content .reward-table td:nth-child(3),
+  .modal-content .reward-table th:nth-child(4), .modal-content .reward-table td:nth-child(4) {
+    width: 25%;
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .modal-head-btns { display: flex; gap: 6px; align-items: center; }
+  .modal-head-btns .toggle-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+    color: #e8c25c;
+    transition: all 0.15s;
+  }
+  .modal-head-btns .toggle-btn:hover { background: rgba(212, 175, 55, 0.15); }
+  .modal-head-btns .close-btn { font-size: 0.8rem; }
+  .modal-title { font-size: 1.1rem; font-weight: 800; color: #f0c75e; letter-spacing: 2px; }
+  .modal .close-btn { font-size: 0.85rem; }
+
+  /* 화면 캡처 */
+  .cr-capture {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid rgba(160, 208, 255, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    background: rgba(20, 60, 110, 0.35);
+    color: #a0d0ff;
+    transition: all 0.15s;
+  }
+  .cr-capture:hover { border-color: #a0d0ff; background: rgba(40, 100, 170, 0.4); }
+  .cr-capture:disabled { opacity: 0.5; cursor: wait; }
+  .capture-content {
+    position: relative; z-index: 1;
+    margin: auto;
+    width: 100%; max-width: 640px;
+    max-width: calc(100vw - 24px);
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, rgba(30, 20, 8, 0.97), rgba(15, 10, 4, 0.99));
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+  }
+  .guide-body {
+    font-size: 0.82rem;
+    color: #e8d9b0;
+    line-height: 1.7;
+    overflow-y: auto;
+    max-height: 62vh;
+  }
+  .guide-sub { font-size: 0.74rem; color: #b7a477; margin-bottom: 8px; }
+  .guide-step {
+    background: rgba(20, 13, 5, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 8px 0;
+    color: #e8d9b0;
+  }
+  .guide-step b { color: #f0c75e; }
+  .guide-step .num {
+    display: inline-block;
+    background: linear-gradient(180deg, #f0c75e, #c19a2c);
+    color: #1a1206;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 20px;
+    margin-right: 6px;
+  }
+  .guide-step .guide-detail { font-size: 0.72rem; color: #b7a477; margin: 3px 0 0 26px; }
+  .guide-imgbox {
+    background: rgba(20, 13, 5, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+    margin-top: 10px;
+  }
+  .guide-imgbox img { max-width: 100%; height: auto; border-radius: 6px; }
+  .guide-imgbox .cap { font-size: 0.66rem; color: #b7a477; margin-top: 4px; }
+  .guide-warn { font-size: 0.72rem; color: #ff9b8a; margin-top: 10px; line-height: 1.6; }
+  .recapture-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #1a1206;
+    background: linear-gradient(180deg, #f0c75e, #c19a2c);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+    transition: filter 0.1s ease;
+  }
+  .recapture-btn:hover { filter: brightness(1.1); }
+  .recapture-btn:active { transform: scale(0.98); }
+  .capture-stage {
+    position: relative;
+    width: 100%;
+    max-height: 70vh;
+    overflow: hidden;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 10px;
+    background: #000;
+    cursor: crosshair;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .video-wrap {
+    position: relative;
+    display: inline-flex;
+    max-width: 100%;
+    max-height: 70vh;
+    line-height: 0;
+  }
+  #captureVideo {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .capture-box {
+    position: absolute;
+    border: 2px solid #ffd700;
+    background: rgba(255, 215, 0, 0.12);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    display: none;
+  }
+  .capture-box.active { display: block; }
+  .capture-magnifier {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid #ffd700;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 0 8px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 999;
+    background: #000;
+  }
+  .capture-magnifier canvas {
+    width: 200px;
+    height: 200px;
+    image-rendering: pixelated;
+  }
+  .capture-magnifier::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px rgba(255, 215, 0, 0.35);
+    pointer-events: none;
+  }
+  .capture-guide {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: auto;
+    cursor: pointer;
+    color: #e8d9b0;
+    text-align: center;
+  }
+  .capture-guide .cg-title { font-size: 1.1rem; font-weight: 800; color: #ffd700; }
+  .capture-guide .cg-hint { font-size: 0.85rem; color: #b7a477; }
+  .capture-status {
+    margin-top: 10px;
+    min-height: 22px;
+    font-size: 0.9rem;
+    color: #a0d0ff;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .capture-preview-wrap {
+    margin-top: 8px;
+    text-align: center;
+  }
+  .capture-preview-wrap .cp-label {
+    display: block;
+    font-size: 0.72rem;
+    color: #7a6a44;
+    margin-bottom: 4px;
+  }
+  .capture-preview {
+    max-width: 100%;
+    max-height: 90px;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 6px;
+    background: #111;
+    image-rendering: pixelated;
+  }
+  .capture-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .capture-actions .toggle-btn {
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+    color: #e8c25c;
+    transition: all 0.15s;
+  }
+  .capture-actions .toggle-btn:hover { background: rgba(212, 175, 55, 0.15); }
+  .capture-actions .toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .capture-actions .confirm-btn {
+    background: linear-gradient(180deg, #7fd4a0, #3f9e6b);
+    color: #0f2e1a;
+    border: none;
+    padding: 12px 30px;
+    font-size: 1rem;
+  }
+  .capture-actions .confirm-btn:hover { filter: brightness(1.1); background: linear-gradient(180deg, #7fd4a0, #3f9e6b); }
+
+  /* 모델 로딩 팝업 */
+  .model-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 6, 2, 0.85);
+    backdrop-filter: blur(4px);
+  }
+  .ml-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 26px 40px;
+    background: linear-gradient(180deg, rgba(60, 44, 18, 0.95), rgba(28, 19, 8, 0.98));
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+  }
+  .ml-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(212, 175, 55, 0.2);
+    border-top-color: #f0c75e;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ml-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #e8c25c;
+    text-align: center;
+  }
+
+  /* 실시간 추적 배지 */
+  .track-badge {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(180deg, rgba(40, 100, 170, 0.9), rgba(20, 60, 110, 0.9));
+    border: 1px solid rgba(160, 208, 255, 0.5);
+    border-radius: 999px;
+    color: #a0d0ff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .track-badge:hover { border-color: #a0d0ff; background: rgba(40, 100, 170, 0.95); }
+  .track-badge .tb-dot {
+    width: 8px;
+    height: 8px;
+    background: #6bcb77;
+    border-radius: 50%;
+    animation: tbPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes tbPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="side-links">
+    <a class="side-link" href="https://bbyakmyo.github.io/TR21Bingo/" rel="noopener">
+      <span class="sl-icon">⭐</span> 21주년 스탬프 빙고
+    </a>
+    <a class="side-link" href="https://bbyakmyo.github.io/Shineup/" rel="noopener">
+      <span class="sl-icon">🪄</span> 얼티메이트 샤인 업!
+    </a>
+  </div>
+  <header id="mainHeader">
+    
+    <div class="vault-ornament">❖ ✦ ❖</div>
+    <h1>🔐 스핑크스의 황금 금고</h1>
+    <p class="desc">스핑크스가 정한 숫자를 맞혀 금고를 여세요.<br>이분 탐색으로 최대 14회 안에 찾아드립니다.</p>
+  </header>
+
+  <!-- 게임 화면 -->
+  <div id="gameScreen" class="hidden">
+    <div class="card">
+      <div class="guess-section">
+        <span class="mode-tag" id="modeTag">✦ 이분 탐색 ✦</span>
+        <p class="prompt">스핑크스가 생각한 숫자는...</p>
+
+        <div class="prob-strip" id="probStrip">
+          <div class="prob-item">
+            <span class="plabel">이번 회차 성공 확률</span>
+            <span id="probNow" class="pvalue">-</span>
+          </div>
+          <div class="prob-item cum">
+            <span class="plabel">누적 기대값</span>
+            <span id="probCum" class="pvalue">-</span>
+          </div>
+        </div>
+
+        <button id="btnReward" class="reward-btn">🎁 보상 보기</button>
+        <div id="rewardPanel" class="reward-panel hidden">
+          <div class="reward-head">
+            <span class="reward-title" id="rewardTitle">1~5회 보상</span>
+            <div class="reward-head-btns">
+              <button id="btnRewardAll" class="toggle-btn">전체 보기</button>
+              <button id="btnRewardClose" class="toggle-btn close-btn">✕ 닫기</button>
+            </div>
+          </div>
+          <div class="reward-table-wrap">
+            <table class="stats-table reward-table" id="rewardTable">
+              <thead>
+                <tr id="rewardHead"></tr>
+              </thead>
+              <tbody id="rewardPanelBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="guess" class="guess"></div>
+        <p class="guess-hint" id="guessHint">이 값보다 큽니까, 작습니까?</p>
+      </div>
+
+      <div class="info">
+        <div class="col">
+          <div class="label">현재 범위</div>
+          <div id="range" class="value">1 ~ 9999</div>
+        </div>
+        <div class="col">
+          <div class="label">시도 횟수</div>
+          <div id="attempt" class="value">1 / 14</div>
+        </div>
+        <div class="col">
+          <div class="label">남은 후보</div>
+          <div id="candidates" class="value">9999개</div>
+        </div>
+      </div>
+
+      <div class="rangebar">
+        <div class="bar">
+          <div id="currange" class="cur"></div>
+          <div id="guessMarker" class="gmarker"></div>
+        </div>
+        <div class="bar-labels"><span>1</span><span>9999</span></div>
+      </div>
+
+      <!-- 범위 직접 지정 (범위 표시 아래 확장) -->
+      <div class="custom-range">
+        <div class="cr-head">
+          <span class="cr-label">범위 직접 지정</span>
+          <span class="cr-note">지정하면 14회 제한 없이 중간 숫자를 알려드립니다.</span>
+        </div>
+        <div class="cr-inputs">
+          <input id="crMin" type="number" min="1" max="9999" inputmode="numeric" placeholder="1">
+          <span class="cr-tilde">~</span>
+          <input id="crMax" type="number" min="1" max="9999" inputmode="numeric" placeholder="9999">
+          <button id="crApply" class="cr-apply">적용</button>
+        </div>
+        <button id="btnCapture" class="cr-capture">📷 화면 캡처로 범위 지정</button>
+      </div>
+
+      <div id="error" class="error hidden">응답이 이전 선택과 모순됩니다. 숫자를 다시 확인해주세요.</div>
+
+      <div class="buttons">
+        <div id="manualButtons">
+          <button id="btnBigger">⬆️ 값이 큼</button>
+          <button id="btnAnswer">🎯 정답</button>
+          <button id="btnSmaller">⬇️ 값이 작음</button>
+        </div>
+        <div id="autoIndicator" class="auto-indicator hidden">
+          <span id="autoIcon" class="ai-icon">📡</span>
+          <span id="autoLabel" class="ai-label">실시간 추적 중</span>
+        </div>
+        <div id="captureControls" class="capture-controls hidden">
+          <button id="btnPause" class="cap-btn">⏸ 일시정지</button>
+          <button id="btnStop" class="cap-btn stop-btn">⏹ 정지</button>
+        </div>
+        <button id="btnUndo" class="undo-btn">↩️ 되돌리기</button>
+      </div>
+    </div>
+
+    <div class="card history">
+      <h3>추측 기록</h3>
+      <ul id="history"></ul>
+    </div>
+  </div>
+
+  <!-- 결과 화면 (확률표 위로) -->
+  <div id="resultScreen" class="hidden">
+    <div class="card result">
+      <div class="emoji" id="resEmoji">🎉</div>
+      <h2 id="resTitle">맞혔습니다!</h2>
+      <div id="resRows"></div>
+      <div class="rating" id="resRating"></div>
+      <div class="result-stats" id="resultStats"></div>
+      <button id="btnShare" class="share-btn">📋 결과 복사</button>
+    </div>
+    <div class="card history">
+      <h3>추측 기록</h3>
+      <ul id="resHistory"></ul>
+    </div>
+    <button id="btnRestart" class="restart-btn">🔄 금고 다시 열기</button>
+  </div>
+
+  <!-- 회차별 통계 표 (결과 화면 아래) -->
+  <div id="statsCard" class="card">
+    <div class="stats-head">
+      <h3>회차별 성공 확률 & 기대값</h3>
+      <span class="note">1~9999 균등 · 이분 탐색</span>
+    </div>
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>회차</th>
+          <th>성공 확률</th>
+          <th>누적 기대값</th>
+        </tr>
+      </thead>
+      <tbody id="statsBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 플레이 기록 (localStorage) -->
+  <div id="playLogCard" class="card">
+    <div class="stats-head">
+      <h3>플레이 기록</h3>
+      <button id="btnStatsClear" class="toggle-btn close-btn">🗑 초기화</button>
+    </div>
+    <div id="playLogSummary" class="result-stats" style="margin-top:0;margin-bottom:10px;"></div>
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>일시</th>
+          <th>모드</th>
+          <th>시도</th>
+          <th>정답</th>
+        </tr>
+      </thead>
+      <tbody id="playLogBody"></tbody>
+    </table>
+  </div>
+
+<!-- 전체 보상 모달 -->
+<div id="rewardModal" class="modal hidden">
+  <div class="modal-overlay" id="modalOverlay"></div>
+  <div class="modal-content">
+    <div class="modal-head">
+      <span class="modal-title">전체 보상</span>
+      <button id="btnModalClose" class="toggle-btn close-btn">✕ 닫기</button>
+    </div>
+    <div class="reward-table-wrap">
+      <table class="stats-table reward-table">
+        <thead>
+          <tr>
+            <th>1~5회</th>
+            <th>6~10회</th>
+            <th>11~13회</th>
+            <th>14회</th>
+          </tr>
+        </thead>
+        <tbody id="rewardModalBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  Vault_helper powered by 백묘
+</footer>
+</div>
+
+<!-- 화면 캡처 모달 -->
+<div id="captureModal" class="modal hidden">
+  <div class="modal-overlay" id="captureOverlay"></div>
+  <div class="capture-content">
+    <div class="modal-head">
+      <span class="modal-title">📷 화면 캡처로 범위 지정</span>
+      <div class="modal-head-btns">
+        <button id="btnCaptureHelp" class="toggle-btn">❓ 사용법</button>
+        <button id="btnCaptureClose" class="toggle-btn close-btn">✕ 닫기</button>
+      </div>
+    </div>
+    <div class="capture-stage" id="captureStage">
+      <div class="video-wrap">
+        <video id="captureVideo" autoplay playsinline></video>
+        <div class="capture-box" id="captureBox"></div>
+      </div>
+      <div class="capture-magnifier hidden" id="captureMagnifier">
+        <canvas id="magCanvas" width="200" height="200"></canvas>
+      </div>
+      <div class="capture-guide" id="captureGuide">
+        <span class="cg-title">화면/창을 선택하세요</span>
+        <span class="cg-hint">이 안내를 클릭하거나, 드래그로 범위 숫자(회색 상자)를 지정하면 인식합니다</span>
+      </div>
+    </div>
+    <div class="capture-status" id="captureStatus">-</div>
+    <button id="btnRecapture" class="recapture-btn hidden">🔄 캡처 화면 다시 선택</button>
+    <div class="capture-preview-wrap">
+      <span class="cp-label">인식 영역 미리보기</span>
+      <canvas id="capturePreview" class="capture-preview"></canvas>
+    </div>
+    <div class="capture-actions">
+      <button id="btnCaptureConfirm" class="toggle-btn confirm-btn">✅ 확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 캡처 사용법 팝업 -->
+<div id="captureHelpModal" class="modal hidden">
+  <div class="modal-overlay" id="captureHelpOverlay"></div>
+  <div class="modal-content">
+    <div class="modal-head">
+      <span class="modal-title">❓ 캡처 사용법</span>
+      <button id="btnCaptureHelpClose" class="toggle-btn close-btn">✕ 닫기</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-sub">스핑크스의 황금 금고 범위 숫자를 실시간으로 감지해 자동으로 맞춰줍니다</div>
+      <div class="guide-step"><span class="num">1</span>캡처 화면 중앙의 <b>"화면/창을 선택하세요"</b> 안내를 클릭하면 브라우저의 <b>화면 공유 선택창</b>이 뜹니다:
+        <div class="guide-detail">· 상단에서 <b>"창"</b> 탭을 선택하세요</div>
+        <div class="guide-detail">· 창 목록에서 <b>Tales Runner</b> 게임 창을 <b>클릭</b>해 선택하세요 (목록에 안 보이면 게임 창을 화면에 띄워두세요)</div>
+        <div class="guide-detail">· 하단 <b>공유</b> 버튼을 누르면 공유가 시작됩니다</div>
+        <div class="guide-detail">· ⚠️ 브라우저 탭이나 전체 화면이 아니라 <b>게임 창 자체</b>를 선택해야 숫자가 정확히 인식됩니다</div>
+      </div>
+      <div class="guide-step"><span class="num">2</span>게임 화면에서 <b>회색 상자(범위 숫자 2개)</b>를 확인하세요. 두 회색 상자를 모두 감싸도록 마우스로 <b>드래그</b>합니다</div>
+      <div class="guide-step"><span class="num">3</span>놓으면 금색 테두리로 영역이 표시되고, 숫자가 <b>자동 인식</b>됩니다. 실시간으로 범위가 추적되며 화면 아래 <b>인식 영역 미리보기</b>로 확인할 수 있습니다</div>
+      <div class="guide-step"><span class="num">4</span><b>✅ 확인</b>을 누르면 팝업이 닫히고 <b>백그라운드에서 계속 추적</b>됩니다. 추적 중에는 <b>⏸ 일시정지 / ⏹ 정지</b> 버튼이 표시됩니다</div>
+      <div class="guide-step"><span class="num">5</span>범위를 잘못 지정했다면 캡처 화면 아래의 <b>🔄 화면 재지정</b> 버튼으로 다시 드래그할 수 있습니다</div>
+      <div class="guide-imgbox">
+        <img src="img/1.png" alt="범위 선택 방법">
+        <div class="cap">▲ 두 회색 상자를 모두 감싸도록 드래그하면 좌/우 숫자를 각각 인식합니다</div>
+      </div>
+      <div class="guide-warn">⚠️ 참고: 화면 공유는 HTTPS(GitHub Pages)에서 동작합니다. 정확도를 위해 드래그 시 두 회색 상자가 모두 포함되도록 하세요.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 모델 로딩 팝업 -->
+<div id="modelLoading" class="model-loading hidden">
+  <div class="ml-box">
+    <div class="ml-spinner"></div>
+    <div id="mlText" class="ml-text">AI 모델 로딩 중...</div>
+  </div>
+</div>
+
+<!-- 실시간 추적 배지 -->
+<div id="trackBadge" class="track-badge hidden">
+  <span class="tb-dot"></span>
+  <span>📡 실시간 추적 중 (클릭하여 중지)</span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "onnxruntime-web": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.mjs",
+    "@ocr-web/core": "https://cdn.jsdelivr.net/npm/@ocr-web/core@0.2.1/dist/index.js",
+    "@ocr-web/models-ppocrv5": "https://cdn.jsdelivr.net/npm/@ocr-web/models-ppocrv5@0.1.1/dist/index.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as ort from 'onnxruntime-web';
+import { OcrEngine } from '@ocr-web/core';
+import { ppocrV5 } from '@ocr-web/models-ppocrv5';
+
+window.__ocrReady = false;
+window.__ocrError = null;
+
+async function initOcr() {
+  ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+  const engine = await OcrEngine.create({
+    models: {
+      detection: ppocrV5.detection,
+      recognition: ppocrV5.recognition
+    },
+    dictionary: ppocrV5.dictionary,
+    runtime: 'wasm',
+    wasmPaths: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/'
+  });
+  window.__ocrEngine = engine;
+  window.__ocrReady = true;
+}
+
+window.__initOcr = initOcr;
+</script>
+
+<script>
+const TOTAL_MIN = 1;
+const TOTAL_MAX = 9999;
+const NORMAL_MAX = 14;
+
+let state = null;
+
+const el = {
+  gameScreen: document.getElementById('gameScreen'),
+  resultScreen: document.getElementById('resultScreen'),
+  statsBody: document.getElementById('statsBody'),
+  probNow: document.getElementById('probNow'),
+  probCum: document.getElementById('probCum'),
+  probStrip: document.getElementById('probStrip'),
+  guess: document.getElementById('guess'),
+  modeTag: document.getElementById('modeTag'),
+  range: document.getElementById('range'),
+  attempt: document.getElementById('attempt'),
+  candidates: document.getElementById('candidates'),
+  currange: document.getElementById('currange'),
+  guessMarker: document.getElementById('guessMarker'),
+  error: document.getElementById('error'),
+  history: document.getElementById('history'),
+  btnBigger: document.getElementById('btnBigger'),
+  btnAnswer: document.getElementById('btnAnswer'),
+  btnSmaller: document.getElementById('btnSmaller'),
+  btnUndo: document.getElementById('btnUndo'),
+  manualButtons: document.getElementById('manualButtons'),
+  autoIndicator: document.getElementById('autoIndicator'),
+  autoIcon: document.getElementById('autoIcon'),
+  autoLabel: document.getElementById('autoLabel'),
+  captureControls: document.getElementById('captureControls'),
+  btnPause: document.getElementById('btnPause'),
+  btnStop: document.getElementById('btnStop'),
+  btnShare: document.getElementById('btnShare'),
+  resultStats: document.getElementById('resultStats'),
+  playLogSummary: document.getElementById('playLogSummary'),
+  playLogBody: document.getElementById('playLogBody'),
+  btnStatsClear: document.getElementById('btnStatsClear'),
+  btnCapture: document.getElementById('btnCapture'),
+  captureModal: document.getElementById('captureModal'),
+  captureOverlay: document.getElementById('captureOverlay'),
+  btnCaptureClose: document.getElementById('btnCaptureClose'),
+  btnCaptureHelp: document.getElementById('btnCaptureHelp'),
+  captureHelpModal: document.getElementById('captureHelpModal'),
+  captureHelpOverlay: document.getElementById('captureHelpOverlay'),
+  btnCaptureHelpClose: document.getElementById('btnCaptureHelpClose'),
+  btnRecapture: document.getElementById('btnRecapture'),
+  captureStage: document.getElementById('captureStage'),
+  captureVideo: document.getElementById('captureVideo'),
+  captureBox: document.getElementById('captureBox'),
+  captureMagnifier: document.getElementById('captureMagnifier'),
+  magCanvas: document.getElementById('magCanvas'),
+  captureGuide: document.getElementById('captureGuide'),
+  captureStatus: document.getElementById('captureStatus'),
+  btnCaptureConfirm: document.getElementById('btnCaptureConfirm'),
+  capturePreview: document.getElementById('capturePreview'),
+  trackBadge: document.getElementById('trackBadge'),
+  modelLoading: document.getElementById('modelLoading'),
+  mlText: document.getElementById('mlText'),
+  btnReward: document.getElementById('btnReward'),
+  crMin: document.getElementById('crMin'),
+  crMax: document.getElementById('crMax'),
+  crApply: document.getElementById('crApply'),
+  resRows: document.getElementById('resRows'),
+  resEmoji: document.getElementById('resEmoji'),
+  resTitle: document.getElementById('resTitle'),
+  resRating: document.getElementById('resRating'),
+  resHistory: document.getElementById('resHistory'),
+  btnRestart: document.getElementById('btnRestart'),
+  rewardPanel: document.getElementById('rewardPanel'),
+  rewardTitle: document.getElementById('rewardTitle'),
+  btnRewardAll: document.getElementById('btnRewardAll'),
+  btnRewardClose: document.getElementById('btnRewardClose'),
+  rewardHead: document.getElementById('rewardHead'),
+  rewardPanelBody: document.getElementById('rewardPanelBody'),
+  mainHeader: document.getElementById('mainHeader'),
+  guessHint: document.getElementById('guessHint'),
+  rewardModal: document.getElementById('rewardModal'),
+  modalOverlay: document.getElementById('modalOverlay'),
+  btnModalClose: document.getElementById('btnModalClose'),
+  rewardModalBody: document.getElementById('rewardModalBody'),
+};
+
+let rewardOpen = false;
+let lastShareText = '';
+
+// ---------- 플레이 통계 (localStorage) ----------
+const STATS_KEY = 'sphinx_vault_stats';
+
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && typeof s.games === 'number') {
+      if (!Array.isArray(s.dist)) s.dist = [];
+      if (!Array.isArray(s.history)) s.history = [];
+      return s;
+    }
+  } catch (e) {}
+  return { games: 0, wins: 0, winAttemptSum: 0, best: null, dist: [], history: [] };
+}
+
+function saveStats(s) { try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch (e) {} }
+
+// 플레이 기록 표 렌더링
+function renderPlayLog() {
+  const stats = loadStats();
+  const avg = stats.wins ? (stats.winAttemptSum / stats.wins).toFixed(1) : '-';
+  el.playLogSummary.textContent = '총 ' + stats.games + '판 · 평균 ' + avg + '회 · 최고 ' + (stats.best !== null ? stats.best + '회' : '-');
+
+  el.playLogBody.innerHTML = '';
+  if (!stats.history.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="4" style="text-align:center;color:#7a6a44;">기록이 없습니다</td>';
+    el.playLogBody.appendChild(tr);
+    return;
+  }
+  stats.history.forEach(function (h) {
+    const d = new Date(h.date);
+    const dateStr = (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="mono">' + dateStr + '</td><td>' + h.mode + '</td><td class="mono">' + h.attempt + '회</td><td class="mono" style="color:#f0c75e;">' + (h.answer !== undefined ? h.answer : '-') + '</td>';
+    el.playLogBody.appendChild(tr);
+  });
+}
+
+function getNextGuess(min, max) {
+  return Math.floor((min + max) / 2);
+}
+
+// ---------- 시도 횟수별 보상 (item_list.csv) ----------
+// 4개 구간: 1~5회, 6~10회, 11~13회, 14회
+const REWARD_GROUPS = [
+  { name: '1~5회', attempts: [1, 2, 3, 4, 5], items: [
+    '21st 소원 종이 1개', '이브닝 세라핌 마법서 5개', '프리즈마 프리즘 콤팩트 3개',
+    '진심 1000% 하트 50개', '선택받은 마음의 원석 1000개', '프리즈마 코인 꾸러미 (특) 10개',
+    '전설의 열쇠 주머니 II 3개', '프로페서의 마법 지팡이 5개', '해원의 수호 상자 1개',
+    '7대 죄악의 상자 1개', '7대 주선의 상자 1개', '승리의 기념품 스페셜 상자 1개',
+    'Lite.1 프레스티지 변경권 1개', 'Lite.1 프라임 변경권 1개', 'Lite.1 레인보우 변경권 1개',
+    'Lite.1 골드 변경권 1개', '마스터 러닝 포션 1개', '테런 낚싯대 3일'
+  ]},
+  { name: '6~10회', attempts: [6, 7, 8, 9, 10], items: [
+    '21st 결정 주머니 1개', '21st 기념 꾸러미 100개', '이브닝 세라핌 마법서 2개',
+    '이브닝 세라핌 열쇠 2개', '진심 1000% 하트 20개', '선택받은 마음의 원석 300개',
+    '프리즈마 상자 100개', '프리즈마 코인 꾸러미 (특) 5개', '화려한 열쇠 주머니 II 10개',
+    '프로페서 지렁이 500개', '수룡의 계보 1개', '7대 죄악 영혼 교환권 1개',
+    '7대 주선 기운 교환권 1개', 'Lite.1 레전더리 변경권 1개', 'Lite.1 펫 히든 변경권 1개',
+    '전설의 박스 티켓 20개', '화려한 박스 티켓 30개', '시니어 러닝 포션 1개',
+    '특별한 열매 주머니 2개', '테런 낚싯대 3시간'
+  ]},
+  { name: '11~13회', attempts: [11, 12, 13], items: [
+    '21st 기념 꾸러미 25개', '이브닝 세라핌 깃털 1개', '프리즈마 스페셜 콤팩트 2개',
+    '진심 1000% 하트 2개', '선택받은 마음의 원석 50개', '프리즈마 상자 10개',
+    '프리즈마 열쇠 10개', '프리즈마 코인 꾸러미 (중) 1개', '프리즈마 변신 포션 50개',
+    '빛나는 열쇠 주머니 II 3개', '프로페서 지렁이 50개', '황금 나침반 3개',
+    '매지컬 샤인 3개', '송충이 10개', '영혼의 독설 20개', '마스터 코인 30개',
+    '화려한 박스 티켓 9개', '빛나는 박스 티켓 12개', '주니어 러닝 포션 1개',
+    '비기너 러닝 포션 1개', '작은 열매 주머니 10개', '꽃기사 지렁이 100개',
+    '중급 지렁이 선택권 1개', '다이아 갯지렁이 150개', '테런 낚싯대 1시간',
+    '스케일 커스텀 쿠폰 2개', '염색 쿠폰 5개'
+  ]},
+  { name: '14회', attempts: [14], items: [
+    '21st 기념 꾸러미 10개', '프리즈마 스페셜 콤팩트 1개', '진심 1000% 하트 1개',
+    '선택받은 마음의 원석 10개', '프리즈마 상자 3개', '프리즈마 열쇠 3개',
+    '프리즈마 코인 30개', '프리즈마 변신 포션 10개', '사물함 열쇠 주머니 11 3개',
+    '프로페서 지렁이 20개', '황금 나침반 1개', '매지컬 샤인 1개',
+    '송충이 3개', '영혼의 독설 5개', '퓨어 테라피 15개', '프리즘 스타 20개',
+    '마스터 코인 10개', '빛나는 박스 티켓 3개', '평범한 박스 티켓 3개',
+    '꽃기사 지렁이 20개', '무지개 왕관 지렁이 20개', '해왕강림 지렁이 20개',
+    '선샤인 지렁이 20개', '별빛 지렁이 20개', '승리의 지렁이 20개',
+    '다이아 갯지렁이 50개', '테런 낚싯대 15분', '스케일 커스텀 쿠폰 1개', '염색 쿠폰 2개'
+  ]}
+];
+
+// 시도 횟수에 해당하는 보상 구간 인덱스 반환 (없으면 -1)
+function rewardGroupIndex(a) {
+  for (let i = 0; i < REWARD_GROUPS.length; i++) {
+    if (REWARD_GROUPS[i].attempts.indexOf(a) !== -1) return i;
+  }
+  return -1;
+}
+
+// 보상 패널 렌더링: 현재 시도 횟수 구간만 표시
+function renderRewardPanel() {
+  const a = state ? state.attempt : 1;
+  const idx = rewardGroupIndex(a);
+
+  let headHtml = '';
+  let title;
+  if (idx === -1) { headHtml = '<th>보상</th>'; title = '보상 없음'; }
+  else { headHtml = '<th class="active-col">' + REWARD_GROUPS[idx].name + ' 보상</th>'; title = REWARD_GROUPS[idx].name + ' 보상'; }
+  el.rewardHead.innerHTML = headHtml;
+  el.rewardTitle.textContent = title;
+
+  const cols = idx === -1 ? [] : [REWARD_GROUPS[idx]];
+  const maxRows = cols.length
+    ? Math.max.apply(null, cols.map(function (g) { return g.items.length; }))
+    : 0;
+
+  let bodyHtml = '';
+  if (cols.length === 0) {
+    bodyHtml = '<tr><td>해당 횟수의 보상이 없습니다.</td></tr>';
+  }
+  for (let r = 0; r < maxRows; r++) {
+    bodyHtml += '<tr>';
+    cols.forEach(function (g) {
+      const item = g.items[r];
+      bodyHtml += '<td class="active-col">' + (item || '-') + '</td>';
+    });
+    bodyHtml += '</tr>';
+  }
+  el.rewardPanelBody.innerHTML = bodyHtml;
+}
+
+// 보상 패널 열기: 상단 레이아웃 숨겨 공간 확보
+function openRewardPanel() {
+  rewardOpen = true;
+  el.btnReward.classList.add('hidden');
+  el.rewardPanel.classList.remove('hidden');
+  el.mainHeader.classList.add('hidden');
+  el.guessHint.classList.add('hidden');
+  renderRewardPanel();
+}
+
+// 보상 패널 닫기: 상단 레이아웃 복원
+function closeRewardPanel() {
+  rewardOpen = false;
+  el.rewardPanel.classList.add('hidden');
+  el.btnReward.classList.remove('hidden');
+  el.mainHeader.classList.remove('hidden');
+  el.guessHint.classList.remove('hidden');
+}
+
+// 전체 보상 모달 열기
+function openRewardModal() {
+  const a = state ? state.attempt : 1;
+  let bodyHtml = '';
+  const maxRows = Math.max.apply(null, REWARD_GROUPS.map(function (g) { return g.items.length; }));
+  for (let r = 0; r < maxRows; r++) {
+    bodyHtml += '<tr>';
+    REWARD_GROUPS.forEach(function (g) {
+      const item = g.items[r];
+      const active = g.attempts.indexOf(a) !== -1 ? ' class="active-col"' : '';
+      bodyHtml += '<td' + active + '>' + (item || '-') + '</td>';
+    });
+    bodyHtml += '</tr>';
+  }
+  el.rewardModalBody.innerHTML = bodyHtml;
+  el.rewardModal.classList.remove('hidden');
+}
+
+// 전체 보상 모달 닫기
+function closeRewardModal() {
+  el.rewardModal.classList.add('hidden');
+}
+
+// ---------- 회차별 통계 계산 ----------
+
+// 1~9999 각 정답에 대해 이분 탐색 시도 횟수를 세어 회차별 성공 개수 계산
+function computeAttemptCounts() {
+  const counts = new Array(NORMAL_MAX + 1).fill(0);
+  for (let target = TOTAL_MIN; target <= TOTAL_MAX; target++) {
+    let min = TOTAL_MIN, max = TOTAL_MAX, attempt = 1;
+    while (attempt <= NORMAL_MAX) {
+      const guess = getNextGuess(min, max);
+      if (guess === target) { counts[attempt]++; break; }
+      if (target < guess) max = guess - 1; else min = guess + 1;
+      if (min > max) break;
+      attempt++;
+    }
+  }
+  return counts;
+}
+
+function renderStats() {
+  const counts = computeAttemptCounts();
+  const total = TOTAL_MAX - TOTAL_MIN + 1;
+  let cumCount = 0;
+
+  el.statsBody.innerHTML = '';
+
+  for (let a = 1; a <= NORMAL_MAX; a++) {
+    const count = counts[a];
+    cumCount += count;
+
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + a;
+    const pct = (count / total * 100);
+    tr.innerHTML =
+      '<td>' + a + '회</td>' +
+      '<td class="mono">' + pct.toFixed(4) + '%</td>' +
+      '<td class="mono">' + (cumCount / total * 100).toFixed(4) + '%</td>';
+    el.statsBody.appendChild(tr);
+  }
+
+  // 합계 행
+  const tr = document.createElement('tr');
+  tr.className = 'total-row';
+  tr.innerHTML =
+    '<td>합계</td>' +
+    '<td class="mono">' + (cumCount / total * 100).toFixed(4) + '%</td>' +
+    '<td class="mono">100.0000%</td>';
+  el.statsBody.appendChild(tr);
+}
+
+// 게임 중 현재 회차의 확률/기대값을 상단에 표시 (애니메이션 포함)
+function updateProbDisplay(a) {
+  const total = TOTAL_MAX - TOTAL_MIN + 1;
+  const counts = computeAttemptCounts();
+  let cumCount = 0;
+  for (let i = 1; i <= a; i++) cumCount += counts[i];
+
+  const nowPct = (counts[a] / total * 100);
+  const cumPct = (cumCount / total * 100);
+
+  el.probNow.textContent = nowPct.toFixed(4) + '%';
+  el.probCum.textContent = cumPct.toFixed(4) + '%';
+
+  // 애니메이션 재트리거
+  el.probNow.classList.remove('flash');
+  void el.probNow.offsetWidth;
+  el.probNow.classList.add('flash');
+  el.probCum.classList.remove('flash');
+  void el.probCum.offsetWidth;
+  el.probCum.classList.add('flash');
+}
+
+// 자릿수별 이동 표시를 큰 추측 숫자에 직접 적용
+// 커지면(위로) ▲가 숫자 위에서, 작아지면(아래로) ▼가 숫자 아래에서 등장
+function renderDigitChange() {
+  const pStr = state.prevGuess === null
+    ? null
+    : String(state.prevGuess).padStart(4, '0');
+  const cStr = String(state.guess).padStart(4, '0');
+
+  let html = '';
+  for (let i = 0; i < 4; i++) {
+    const cD = parseInt(cStr[i], 10);
+
+    let upArrow = '';
+    let downArrow = '';
+    if (pStr !== null) {
+      const pD = parseInt(pStr[i], 10);
+      if (pD !== cD) {
+        // 0~9 원형 기준 최단 이동
+        const upSteps = (cD - pD + 10) % 10;
+        const downSteps = (pD - cD + 10) % 10;
+        if (upSteps <= downSteps) {
+          upArrow = '<span class="arr up">▲' + upSteps + '</span>';
+        } else {
+          downArrow = '<span class="arr down">▼' + downSteps + '</span>';
+        }
+      }
+    }
+
+    html +=
+      '<div class="dcol">' +
+        '<div class="arr-box">' + upArrow + '</div>' +
+        '<div class="dnum">' + cD + '</div>' +
+        '<div class="arr-box">' + downArrow + '</div>' +
+      '</div>';
+  }
+
+  el.guess.innerHTML = html;
+}
+
+// 현재 시도 회차의 행을 하이라이트 (애니메이션)
+function highlightAttempt(a) {
+  // 기존 하이라이트 제거
+  const prev = el.statsBody.querySelectorAll('.highlight-row');
+  prev.forEach(function (r) { r.classList.remove('highlight-row'); });
+
+  const tr = document.getElementById('row-' + a);
+  if (!tr) return;
+  // 애니메이션 재트리거
+  tr.classList.remove('highlight-row');
+  void tr.offsetWidth;
+  tr.classList.add('highlight-row');
+}
+
+// ---------- 게임 ----------
+
+function start() {
+  state = {
+    min: TOTAL_MIN,
+    max: TOTAL_MAX,
+    guess: getNextGuess(TOTAL_MIN, TOTAL_MAX),
+    prevGuess: null,
+    attempt: 1,
+    limit: NORMAL_MAX,
+    custom: false,
+    history: [],
+    undoStack: [],
+    gameState: 'playing'
+  };
+
+  // 1~9999(설정값)로 게임 시작 → 확률 활성화
+  captureGameStarted = true;
+  enableProbDisplay();
+
+  el.gameScreen.classList.remove('hidden');
+  el.resultScreen.classList.add('hidden');
+  el.error.classList.add('hidden');
+  el.btnBigger.disabled = false;
+  el.btnAnswer.disabled = false;
+  el.btnSmaller.disabled = false;
+
+  el.btnReward.classList.remove('hidden');
+  el.modeTag.textContent = '✦ 이분 탐색 ✦';
+
+  el.btnUndo.disabled = true;
+
+  render();
+  popGuess();
+  highlightAttempt(1);
+  updateProbDisplay(1);
+  renderRewardPanel();
+}
+
+// 범위 직접 지정 모드로 전환
+function applyCustomRange() {
+  const min = parseInt(el.crMin.value, 10);
+  const max = parseInt(el.crMax.value, 10);
+
+  if (!Number.isInteger(min) || !Number.isInteger(max) || min < TOTAL_MIN || max > TOTAL_MAX || min > max) {
+    el.error.textContent = '범위는 1~9999 사이이고 min ≤ max여야 합니다.';
+    el.error.classList.remove('hidden');
+    return;
+  }
+  el.error.classList.add('hidden');
+
+  // 보상 패널 닫기 (있으면)
+  if (rewardOpen) closeRewardPanel();
+
+  state = {
+    min: min,
+    max: max,
+    guess: getNextGuess(min, max),
+    prevGuess: null,
+    attempt: 1,
+    limit: Infinity, // 14회 제한 없음
+    custom: true,
+    history: [],
+    undoStack: [],
+    gameState: 'playing'
+  };
+
+  el.btnReward.classList.add('hidden');
+  el.modeTag.textContent = '✦ 범위 지정 ✦';
+  el.btnBigger.disabled = false;
+  el.btnAnswer.disabled = false;
+  el.btnSmaller.disabled = false;
+  el.btnUndo.disabled = true;
+
+  render();
+  popGuess();
+  updateProbDisplay(state.attempt);
+}
+
+function render() {
+  const total = TOTAL_MAX - TOTAL_MIN + 1;
+  el.range.textContent = state.min + ' ~ ' + state.max;
+  if (state.custom) {
+    el.attempt.textContent = state.attempt + '회 (제한 없음)';
+  } else {
+    el.attempt.textContent = state.attempt + ' / ' + state.limit;
+  }
+
+  // 되돌리기 버튼 상태
+  el.btnUndo.disabled = state.undoStack.length === 0;
+
+  // 범위 입력 필드를 현재 범위로 동기화 (입력 중이 아닐 때만)
+  if (document.activeElement !== el.crMin && document.activeElement !== el.crMax) {
+    el.crMin.value = state.min;
+    el.crMax.value = state.max;
+  }
+
+  // 남은 후보 수 & 필요 시도
+  const cand = state.max - state.min + 1;
+  if (cand <= 1) el.candidates.textContent = '1개 · 정답 확정';
+  else el.candidates.textContent = cand + '개 · ≤' + Math.ceil(Math.log2(cand)) + '회';
+
+  // 추측 위치 마커
+  const gPct = Math.max(0, Math.min(100, ((state.guess - TOTAL_MIN) / (total - 1)) * 100));
+  el.guessMarker.style.left = gPct + '%';
+
+  // 경계값: 추측값이 하한이면 '작음' 불가, 상한이면 '큼' 불가
+  if (state.gameState === 'playing') {
+    el.btnSmaller.disabled = state.guess <= state.min;
+    el.btnBigger.disabled = state.guess >= state.max;
+  }
+
+  const leftPct = Math.max(0, ((state.min - TOTAL_MIN) / (total - 1)) * 100);
+  const widthPct = Math.max(0, ((state.max - state.min + 1) / total) * 100);
+  el.currange.style.left = leftPct + '%';
+  el.currange.style.width = widthPct + '%';
+
+  el.history.innerHTML = '';
+  state.history.forEach(function (h, i) {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="no">#' + (i + 1) + '</span><span>' + h.guess + '</span><span class="' + h.cls + '">' + h.label + '</span>';
+    el.history.appendChild(li);
+  });
+
+  // 추측 숫자 + 자릿수 이동 화살표 항상 갱신 (어떤 경로에서든)
+  renderDigitChange();
+}
+
+function popGuess() {
+  el.guess.classList.remove('pop');
+  void el.guess.offsetWidth;
+  el.guess.classList.add('pop');
+}
+
+function pushHistory(result, label, cls) {
+  state.history.push({ guess: state.guess, answer: result, label: label, cls: cls });
+}
+
+function disableButtons() {
+  el.btnBigger.disabled = true;
+  el.btnAnswer.disabled = true;
+  el.btnSmaller.disabled = true;
+}
+
+function nextGuess() {
+  if (state.min > state.max) {
+    // 응답 모순 (이론상 발생하지 않음, 사용자 응답 오류)
+    el.error.classList.remove('hidden');
+    disableButtons();
+    return;
+  }
+  state.prevGuess = state.guess;
+  state.attempt++;
+  state.guess = getNextGuess(state.min, state.max);
+  render();
+  popGuess();
+  updateProbDisplay(state.attempt);
+  renderRewardPanel();
+
+  // 14회에 도달하면 해당 추측이 반드시 정답 → 자동으로 정답 표시 (범위 지정 모드는 제외)
+  if (!state.custom && state.attempt >= state.limit) {
+    pushHistory('answer', '🎯 정답', 'res-ok');
+    state.gameState = 'won';
+    render();
+    showResult();
+  }
+}
+
+function bigger() {
+  if (state.gameState !== 'playing') return;
+  // 되돌리기용 이전 상태 저장
+  state.undoStack.push({ min: state.min, max: state.max, guess: state.guess, prevGuess: state.prevGuess, attempt: state.attempt, history: state.history.slice() });
+  pushHistory('bigger', '⬆️ 값이 큼', 'res-big');
+  state.min = state.guess + 1;
+  nextGuess();
+}
+
+function smaller() {
+  if (state.gameState !== 'playing') return;
+  // 되돌리기용 이전 상태 저장
+  state.undoStack.push({ min: state.min, max: state.max, guess: state.guess, prevGuess: state.prevGuess, attempt: state.attempt, history: state.history.slice() });
+  pushHistory('smaller', '⬇️ 값이 작음', 'res-small');
+  state.max = state.guess - 1;
+  nextGuess();
+}
+
+function undoLast() {
+  if (state.gameState !== 'playing' || state.undoStack.length === 0) return;
+  const prev = state.undoStack.pop();
+  state.min = prev.min;
+  state.max = prev.max;
+  state.guess = prev.guess;
+  state.prevGuess = prev.prevGuess;
+  state.attempt = prev.attempt;
+  state.history = prev.history;
+  el.error.classList.add('hidden');
+  render();
+  popGuess();
+  updateProbDisplay(state.attempt);
+  renderRewardPanel();
+}
+
+function answer() {
+  if (state.gameState !== 'playing') return;
+  pushHistory('answer', '🎯 정답', 'res-ok');
+  state.gameState = 'won';
+  showResult();
+}
+
+function getRating(n) {
+  if (n <= 5) return '⚡ 초고속';
+  if (n <= 9) return '🔥 빠름';
+  if (n <= 12) return '👍 성공';
+  if (n === 13) return '😮 거의 끝까지 갔네요';
+  return '🎯 정확히 찾아냈습니다';
+}
+
+function addResultRow(k, v) {
+  const row = document.createElement('div');
+  row.className = 'row';
+  const kk = document.createElement('span');
+  kk.className = 'k';
+  kk.textContent = k;
+  const vv = document.createElement('span');
+  vv.className = 'v';
+  vv.textContent = v;
+  row.appendChild(kk);
+  row.appendChild(vv);
+  el.resRows.appendChild(row);
+}
+
+function showResult() {
+  el.gameScreen.classList.add('hidden');
+  el.resultScreen.classList.remove('hidden');
+
+  el.resRows.innerHTML = '';
+  el.resEmoji.textContent = '🎉';
+  el.resTitle.textContent = '맞혔습니다!';
+  addResultRow('스핑크스가 생각한 숫자', state.guess);
+  addResultRow('제가 맞힌 숫자', state.guess);
+  addResultRow('총 시도 횟수', state.attempt + '회');
+  el.resRating.textContent = getRating(state.attempt);
+
+  // 통계 기록
+  const stats = loadStats();
+  stats.games++;
+  stats.wins++;
+  stats.winAttemptSum += state.attempt;
+  if (stats.best === null || state.attempt < stats.best) stats.best = state.attempt;
+  const di = Math.min(state.attempt, NORMAL_MAX);
+  stats.dist[di] = (stats.dist[di] || 0) + 1;
+  stats.history.unshift({ date: Date.now(), mode: state.custom ? '범위 지정' : '이분 탐색', attempt: state.attempt, answer: state.guess });
+  if (stats.history.length > 50) stats.history.length = 50;
+  saveStats(stats);
+  renderPlayLog();
+  const avg = stats.winAttemptSum / stats.wins;
+  el.resultStats.textContent = '📊 누적 ' + stats.games + '판 · 평균 ' + avg.toFixed(1) + '회 · 최고 ' + stats.best + '회';
+
+  // 공유 텍스트
+  lastShareText = '🔐 스핑크스의 황금 금고\n' + state.attempt + '회만에 클리어! ' + getRating(state.attempt) + '\n모드: ' + (state.custom ? '범위 지정' : '이분 탐색');
+
+
+  el.resHistory.innerHTML = '';
+  state.history.forEach(function (h, i) {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="no">#' + (i + 1) + '</span><span>' + h.guess + '</span><span class="' + h.cls + '">' + h.label + '</span>';
+    el.resHistory.appendChild(li);
+  });
+}
+
+// ---------- 화면 캡처 (PP-OCRv5) ----------
+
+// 실시간 캡처 모드: 수동 버튼 숨기고 업/다운 인디케이터 표시
+function enterAutoMode() {
+  el.manualButtons.classList.add('hidden');
+  el.autoIndicator.classList.remove('hidden');
+  el.captureControls.classList.remove('hidden');
+  // 캡처 모드 동안 범위 직접 지정 비활성화 (게임 화면과 동기화되므로 직접 변경 금지)
+  el.crMin.disabled = true;
+  el.crMax.disabled = true;
+  el.crApply.disabled = true;
+  showAutoIndicator('sync', '실시간 추적 중');
+}
+
+// 실시간 캡처 모드 해제: 수동 버튼 복원 + 범위 지정 복구
+function exitAutoMode() {
+  el.manualButtons.classList.remove('hidden');
+  el.autoIndicator.classList.add('hidden');
+  el.captureControls.classList.add('hidden');
+  el.crMin.disabled = false;
+  el.crMax.disabled = false;
+  el.crApply.disabled = false;
+}
+
+// 확률 표시 비활성화 (첫 시작이 1~9999가 아닐 때)
+function disableProbDisplay() {
+  el.probStrip.classList.add('disabled');
+  el.probNow.textContent = '-';
+  el.probCum.textContent = '-';
+}
+
+// 확률 표시 활성화
+function enableProbDisplay() {
+  el.probStrip.classList.remove('disabled');
+}
+
+// 업/다운 인디케이터 표시 (아이콘은 autoIcon, 라벨은 순수 텍스트)
+function showAutoIndicator(type, label) {
+  el.autoIndicator.classList.remove('up', 'down');
+  // 라벨에서 이모티콘 제거 (autoIcon이 별도로 표시하므로 중복 방지)
+  el.autoLabel.textContent = (label || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, '').trim();
+  if (type === 'up') {
+    el.autoIcon.textContent = '⬆️';
+    el.autoIndicator.classList.add('up');
+  } else if (type === 'down') {
+    el.autoIcon.textContent = '⬇️';
+    el.autoIndicator.classList.add('down');
+  } else if (type === 'reset') {
+    el.autoIcon.textContent = '🔄';
+  } else {
+    el.autoIcon.textContent = '📡';
+  }
+}
+
+let captureStream = null;
+let captureDragging = false;
+let captureStart = null;
+let captureRegion = null;
+let captureStageSize = null;
+let captureTimer = null;
+let captureBusy = false;
+let capturePaused = false;  // 일시정지 상태
+let captureLastMin = null;
+let captureLastMax = null;
+let captureFirstDone = false;
+let captureGameStarted = false;   // 첫 인식이 1~9999(설정값)로 시작됐는지
+
+// 모델 로딩 팝업 표시
+function showModelLoading(text) {
+  el.mlText.textContent = text || 'AI 모델 로딩 중...';
+  el.modelLoading.classList.remove('hidden');
+}
+function hideModelLoading() {
+  el.modelLoading.classList.add('hidden');
+}
+
+// PP-OCRv5 엔진 로드 (버튼 클릭 시에만)
+let ocrLoadPromise = null;
+function loadOcrEngine() {
+  if (!ocrLoadPromise) {
+    ocrLoadPromise = window.__initOcr().catch(function (e) {
+      ocrLoadPromise = null;
+      throw e;
+    });
+  }
+  return ocrLoadPromise;
+}
+
+function openCaptureModal() {
+  el.captureModal.classList.remove('hidden');
+  el.trackBadge.classList.add('hidden');
+  el.captureBox.classList.remove('active');
+  if (captureStream) {
+    // 기존 스트림/영역 재사용 (추적 계속)
+    el.captureGuide.style.display = 'none';
+    el.captureStatus.textContent = captureRegion ? '영역 지정됨 - 실시간 추적 중' : '범위 숫자가 있는 영역을 드래그로 지정하세요';
+    // 기존 영역이 있으면 오버레이 재동기화 후 즉시 재인식 (미리보기 최신화)
+    if (captureRegion) {
+      syncCaptureOverlay();
+      // 재지정 버튼 표시 (잘못 지정 시 다시 드래그 가능)
+      el.btnRecapture.classList.remove('hidden');
+      el.captureStatus.textContent = '실시간 추적 중 - 최신 상태 확인...';
+      startCaptureLoop();
+      recognizeRegion();
+    }
+  } else {
+    el.captureGuide.style.display = 'flex';
+    el.captureStatus.textContent = '🎮 화면 선택에서 Tales Runner 창을 선택하세요';
+    captureRegion = null;
+    captureFirstDone = false;
+    captureLastMin = null;
+    captureLastMax = null;
+    el.btnRecapture.classList.add('hidden');
+  }
+}
+
+function closeCaptureModal() {
+  // 팝업만 닫고 백그라운드 실시간 추적은 유지
+  el.captureModal.classList.add('hidden');
+  if (captureStream) {
+    el.trackBadge.classList.remove('hidden');
+  }
+}
+
+// 실시간 추적 완전 중지 (스트림/루프 정지)
+function stopCaptureTracking() {
+  stopCaptureStream();
+  el.trackBadge.classList.add('hidden');
+  el.captureModal.classList.add('hidden');
+  captureFirstDone = false;
+  captureGameStarted = false;
+  capturePaused = false;
+  el.btnPause.textContent = '⏸ 일시정지';
+  exitAutoMode();
+}
+
+function stopCaptureStream() {
+  if (captureTimer) { clearInterval(captureTimer); captureTimer = null; }
+  if (captureStream) {
+    captureStream.getTracks().forEach(function (t) { t.stop(); });
+    captureStream = null;
+  }
+  el.captureVideo.srcObject = null;
+}
+
+async function startScreenCapture() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    el.captureStatus.textContent = '❌ 이 브라우저는 화면 캡처를 지원하지 않습니다 (Chrome/Edge 권장).';
+    return;
+  }
+  try {
+    if (captureStream) stopCaptureStream();
+    // cursor: 'never' → 캡처 화면에서 마우스 커서 제외
+    captureStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: 'never' },
+      audio: false
+    });
+    el.captureVideo.srcObject = captureStream;
+    el.captureGuide.style.display = 'none';
+    el.captureStatus.textContent = '범위 숫자가 있는 영역을 드래그로 지정하세요';
+  } catch (e) {
+    el.captureStatus.textContent = '캡처가 취소되었습니다.';
+  }
+}
+
+function regionToCanvas() {
+  if (!captureRegion || !el.captureVideo.videoWidth) return null;
+  const vw = el.captureVideo.videoWidth;
+  const vh = el.captureVideo.videoHeight;
+
+  // captureRegion은 video 표시 영역 기준 0~1 비율 → 원본 픽셀로 직접 변환
+  // (video 크기가 변해도 비율 기반이라 정확)
+  const cx0 = Math.max(0, Math.min(1, captureRegion.left)) * vw;
+  const cy0 = Math.max(0, Math.min(1, captureRegion.top)) * vh;
+  const cx1 = Math.max(0, Math.min(1, captureRegion.left + captureRegion.width)) * vw;
+  const cy1 = Math.max(0, Math.min(1, captureRegion.top + captureRegion.height)) * vh;
+  const w = cx1 - cx0;
+  const h = cy1 - cy0;
+  if (w < 1 || h < 1) return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w));
+  canvas.height = Math.max(1, Math.round(h));
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(el.captureVideo, cx0, cy0, w, h, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+// #919191 = (145,145,145) 정확한 색 판정 (감마/압축 변동 ±8만 허용)
+// Pass 1: 지정 영역에서 정확한 #919191 픽셀 그룹들을 찾음
+// 회색 열(column) 프로젝션으로 좌/우 패널을 분리해 bbox 배열 반환
+// 패널이 1개면 [bbox1], 2개면 [bbox1, bbox2] (좌→우 순)
+function findGrayPanels(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const d = ctx.getImageData(0, 0, w, h).data;
+
+  const isGray = function (r, g, b) {
+    const tol = 25;
+    return Math.abs(r - 145) <= tol && Math.abs(g - 145) <= tol && Math.abs(b - 145) <= tol
+      && Math.abs(r - g) <= 20 && Math.abs(g - b) <= 20;
+  };
+
+  // 1) 회색 배경 + 패널 내부 글자(세로로 긴 것) 열 프로젝션
+  //    - 회색: 패널 배경
+  //    - 세로로 긴 글자: 패널 안 숫자 (9999처럼 숫자가 회색을 가로질러도 패널 유지)
+  //    - ~ 같은 구분 기호: 세로로 짧아서 제외 (패널 오염 방지)
+  const col = new Array(w).fill(0);
+  const colTop = new Array(w).fill(Infinity);
+  const colBot = new Array(w).fill(-1);
+  // 먼저 글자 픽셀의 세로 범위를 열별로 기록
+  const txtTop = new Array(w).fill(Infinity);
+  const txtBot = new Array(w).fill(-1);
+  const txtCnt = new Array(w).fill(0);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      if (isGray(r, g, b)) {
+        col[x]++;
+        if (y < colTop[x]) colTop[x] = y;
+        if (y > colBot[x]) colBot[x] = y;
+      } else if (r > 130 && g > 100 && b < 140 && (r - b) > 60 && (g - b) > 50) {
+        // 노란 글자 후보 — 세로 길이를 나중에 판단
+        txtCnt[x]++;
+        if (y < txtTop[x]) txtTop[x] = y;
+        if (y > txtBot[x]) txtBot[x] = y;
+      }
+    }
+  }
+  // 세로로 긴 글자(패널 숫자)만 col에 병합. ~ 같은 짧은 기호는 제외
+  for (let x = 0; x < w; x++) {
+    if (txtCnt[x] > 0 && txtTop[x] !== Infinity && (txtBot[x] - txtTop[x] + 1) >= h * 0.5) {
+      col[x] += txtCnt[x];
+      if (txtTop[x] < colTop[x]) colTop[x] = txtTop[x];
+      if (txtBot[x] > colBot[x]) colBot[x] = txtBot[x];
+    }
+  }
+
+  // 2) 회색 열(run) → 각 run의 y 범위 → bbox
+  const runs = [];
+  let on = false, s = 0;
+  for (let x = 0; x < w; x++) {
+    if (col[x] > 0 && !on) { on = true; s = x; }
+    else if (col[x] === 0 && on) { on = false; runs.push([s, x - 1]); }
+  }
+  if (on) runs.push([s, w - 1]);
+  if (runs.length === 0) return null;
+
+  let panels = runs.map(function (r) {
+    let minY = Infinity, maxY = -1;
+    for (let x = r[0]; x <= r[1]; x++) {
+      if (colTop[x] < minY) minY = colTop[x];
+      if (colBot[x] > maxY) maxY = colBot[x];
+    }
+    return { x0: r[0], y0: minY === Infinity ? 0 : minY, x1: r[1], y1: maxY === -1 ? h - 1 : maxY };
+  }).filter(function (p) { return (p.x1 - p.x0) >= 2 && (p.y1 - p.y0) >= 2; });
+
+  if (panels.length === 0) return null;
+
+  // 3) 좌/우 2그룹 클러스터링:
+  //    run들을 x순 정렬 → 인접 run 사이 간격이 작으면(패널 내부 글자 사이) 병합
+  //    큰 간격(좌/우 패널 사이)에서 2그룹으로 나눔
+  panels.sort(function (a, b) { return a.x0 - b.x0; });
+  const mergeGap = 10;
+  // 각 run의 인접 간격 계산
+  const gaps = [];
+  for (let i = 1; i < panels.length; i++) {
+    gaps.push(panels[i].x0 - panels[i - 1].x1);
+  }
+  // 큰 간격들(mergeGap 이상) 중에서 가장 큰 것을 기준으로 좌/우 분리
+  // 9999 패널 내부 조각들은 mergeGap 미만이라 병합됨
+  let splitIdx = -1;
+  let maxBigGap = -1;
+  for (let i = 0; i < gaps.length; i++) {
+    if (gaps[i] >= mergeGap && gaps[i] > maxBigGap) {
+      maxBigGap = gaps[i];
+      splitIdx = i + 1; // splitIdx 이후가 우측 그룹
+    }
+  }
+
+  if (splitIdx > 0) {
+    // 좌측 그룹: panels[0..splitIdx-1] 병합
+    const left = { x0: panels[0].x0, y0: panels[0].y0, x1: panels[splitIdx - 1].x1, y1: panels[splitIdx - 1].y1 };
+    for (let i = 1; i < splitIdx; i++) {
+      left.x1 = Math.max(left.x1, panels[i].x1);
+      left.y0 = Math.min(left.y0, panels[i].y0);
+      left.y1 = Math.max(left.y1, panels[i].y1);
+    }
+    // 우측 그룹: panels[splitIdx..끝] 병합
+    const right = { x0: panels[splitIdx].x0, y0: panels[splitIdx].y0, x1: panels[panels.length - 1].x1, y1: panels[panels.length - 1].y1 };
+    for (let i = splitIdx + 1; i < panels.length; i++) {
+      right.x1 = Math.max(right.x1, panels[i].x1);
+      right.y0 = Math.min(right.y0, panels[i].y0);
+      right.y1 = Math.max(right.y1, panels[i].y1);
+    }
+    panels = [left, right];
+  } else {
+    // 큰 간격이 없으면 전부 하나의 패널로 병합
+    const merged = { x0: panels[0].x0, y0: panels[0].y0, x1: panels[panels.length - 1].x1, y1: panels[panels.length - 1].y1 };
+    for (let i = 1; i < panels.length; i++) {
+      merged.x1 = Math.max(merged.x1, panels[i].x1);
+      merged.y0 = Math.min(merged.y0, panels[i].y0);
+      merged.y1 = Math.max(merged.y1, panels[i].y1);
+    }
+    panels = [merged];
+  }
+
+// 4) 크롭 대상 bbox: 회색 패널 주변의 노란 글자(9999 숫자)까지 포함하도록 확장
+  //    (밝은 배경/흰색은 글자로 오인하지 않도록 노란 글자만 스캔)
+  const isText2 = function (r, g, b) {
+    return r > 130 && g > 100 && b < 140 && (r - b) > 60 && (g - b) > 50;
+  };
+  panels = panels.map(function (p) {
+    // 패널 근처(+8px) 노란 글자 픽셀들의 실제 bbox 확장
+    let ex0 = p.x0, ex1 = p.x1, ey0 = p.y0, ey1 = p.y1;
+    const scanX0 = Math.max(0, p.x0 - 8);
+    const scanX1 = Math.min(w - 1, p.x1 + 8);
+    const scanY0 = Math.max(0, p.y0 - 6);
+    const scanY1 = Math.min(h - 1, p.y1 + 6);
+    for (let y = scanY0; y <= scanY1; y++) {
+      for (let x = scanX0; x <= scanX1; x++) {
+        const i = (y * w + x) * 4;
+        if (isText2(d[i], d[i + 1], d[i + 2])) {
+          if (x < ex0) ex0 = x;
+          if (x > ex1) ex1 = x;
+          if (y < ey0) ey0 = y;
+          if (y > ey1) ey1 = y;
+        }
+      }
+    }
+    return {
+      x0: Math.max(0, ex0),
+      y0: Math.max(0, ey0),
+      x1: Math.min(w - 1, ex1),
+      y1: Math.min(h - 1, ey1)
+    };
+  });
+
+  panels.sort(function (a, b) { return a.x0 - b.x0; });
+  return panels;
+}
+
+// 회색 패널 bbox → 그 안 내용만 담은 새 캔버스 반환 (박스 밖 제거)
+function cropGrayPanel(canvas, gray) {
+  // 여백 없이 정확히 크롭 (findGrayPanels가 이미 글자 포함 bbox를 반환)
+  const cw = canvas.width, ch = canvas.height;
+  const x0 = Math.max(0, gray.x0);
+  const y0 = Math.max(0, gray.y0);
+  const x1 = Math.min(cw - 1, gray.x1);
+  const y1 = Math.min(ch - 1, gray.y1);
+  const w = x1 - x0 + 1;
+  const h = y1 - y0 + 1;
+  if (w < 2 || h < 2) return null;
+  const out = document.createElement('canvas');
+  out.width = w;
+  out.height = h;
+  const octx = out.getContext('2d');
+  octx.drawImage(canvas, x0, y0, w, h, 0, 0, w, h);
+  return out;
+}
+
+// 1 vs 7 판별: 7은 상단 가로 획이 있어 상단이 넓고 하단으로 갈수록 좁아짐
+// 1은 상단/하단 폭이 거의 동일한 세로선. 상단이 하단보다 훨씬 넓으면 7
+function looksLikeSeven(canvas) {
+  try {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const d = ctx.getImageData(0, 0, w, h).data;
+    // 글자 픽셀 = 회색(#919191)이 아닌 픽셀 (노란/밝은 글자)
+    const isGray = function (r, g, b) {
+      const tol = 25;
+      return Math.abs(r - 145) <= tol && Math.abs(g - 145) <= tol && Math.abs(b - 145) <= tol
+        && Math.abs(r - g) <= 20 && Math.abs(g - b) <= 20;
+    };
+    // 글자 bbox
+    let minX = w, maxX = -1, minY = h, maxY = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        if (!isGray(d[i], d[i + 1], d[i + 2])) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return false;
+    const height = maxY - minY + 1;
+    if (height < 3) return false;
+    // 상단 20% 영역과 하단 20% 영역의 폭 비교
+    const topLimit = minY + Math.floor(height * 0.2);
+    const botStart = maxY - Math.floor(height * 0.2);
+    let topMinX = w, topMaxX = -1;
+    let botMinX = w, botMaxX = -1;
+    for (let y = minY; y <= topLimit; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const i = (y * w + x) * 4;
+        if (!isGray(d[i], d[i + 1], d[i + 2])) {
+          if (x < topMinX) topMinX = x;
+          if (x > topMaxX) topMaxX = x;
+        }
+      }
+    }
+    for (let y = botStart; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const i = (y * w + x) * 4;
+        if (!isGray(d[i], d[i + 1], d[i + 2])) {
+          if (x < botMinX) botMinX = x;
+          if (x > botMaxX) botMaxX = x;
+        }
+      }
+    }
+    if (topMaxX < 0 || botMaxX < 0) return false;
+    const topW = topMaxX - topMinX + 1;
+    const botW = botMaxX - botMinX + 1;
+    // 상단이 하단보다 1.6배 이상 넓으면 7 (가로 획)
+    return botW > 0 && topW >= botW * 1.6;
+  } catch (e) { return false; }
+}
+
+// 하나의 숫자 영역을 인식해 {num, text, corrected} 반환
+// corrected: 1↔7 후처리 보정이 적용됐는지 여부
+// 여러 숫자가 나오면 길이가 가장 긴 것 채택 (오인 방어)
+async function recognizeOneNumber(engine, canvas) {
+  let res = null;
+  try {
+    res = await engine.recognize(canvas, { detThreshold: 0.1, unclipRatio: 1.5, maxSideLen: 960 });
+  } catch (e) { return { num: null, text: '', corrected: false }; }
+  const text = (res && res.fullText) ? res.fullText : '';
+  // OCR이 "99 99"처럼 자릿수를 나눠 읽는 경우를 위해, 숫자 사이 구분자(공백 등) 제거 후 추출
+  const cleaned = text.replace(/[^0-9]/g, '');
+  const matches = cleaned.match(/(\d+)/g) || [];
+  if (!matches.length) return { num: null, text: text, corrected: false };
+  // 길이가 가장 긴 숫자 시퀀스 채택 (최대 4자리)
+  let best = null;
+  matches.forEach(function (s) {
+    if (s.length <= 4 && (!best || s.length > best.length)) best = s;
+  });
+  if (!best) return { num: null, text: text, corrected: false };
+
+  // 가로세로비 기반 자릿수 검증: 패널이 넓은데(3~4자리 숫자 폭) OCR이 1~2자리만 읽었으면
+  // OCR이 자릿수를 놓친 것 → 원본을 1.5배 확대해 재인식 시도
+  // 4자리 숫자 패널은 가로/세로비가 큼(예: 2.5+), 1자리는 작음(예: 1 이하)
+  if (canvas.height > 0 && best.length <= 2) {
+    const aspect = canvas.width / canvas.height;
+    if (aspect >= 2.0) {
+      const up = document.createElement('canvas');
+      up.width = canvas.width * 1.5;
+      up.height = canvas.height * 1.5;
+      const uctx = up.getContext('2d');
+      uctx.imageSmoothingEnabled = true;
+      uctx.drawImage(canvas, 0, 0, up.width, up.height);
+      try {
+        const res2 = await engine.recognize(up, { detThreshold: 0.1, unclipRatio: 1.5, maxSideLen: 960 });
+        const text2 = (res2 && res2.fullText) ? res2.fullText : '';
+        const cleaned2 = text2.replace(/[^0-9]/g, '');
+        const m2 = cleaned2.match(/(\d+)/g) || [];
+        let best2 = null;
+        m2.forEach(function (s2) {
+          if (s2.length <= 4 && (!best2 || s2.length > best2.length)) best2 = s2;
+        });
+        if (best2 && best2.length > best.length) best = best2;
+      } catch (e2) { /* 재시도 실패 무시 */ }
+    }
+  }
+
+  let n = parseInt(best, 10);
+  let corrected = false;
+  // 1↔7 혼동 보정: OCR이 7을 읽었는데 상단 가로 획이 없으면 1
+  if (best.length === 1 && n === 7 && !looksLikeSeven(canvas)) {
+    n = 1;
+    corrected = true;
+  }
+  return { num: Number.isInteger(n) ? n : null, text: text, corrected: corrected };
+}
+
+// PP-OCRv5 인식 → 두 숫자 추출
+// 컬럼 프로젝션으로 두 숫자 영역 분리 → 각각 개별 인식
+async function recognizeRegion() {
+  if (captureBusy) return;
+  // video 표시 크기 캐시 갱신 (백그라운드 추적 시 숨겨진 video용)
+  if (captureStageSize) updateStageCache();
+  const raw = regionToCanvas();
+  if (!raw) return;
+  captureBusy = true;
+  // 미리보기 갱신
+  try {
+    const pv = el.capturePreview;
+    pv.width = raw.width;
+    pv.height = raw.height;
+    pv.getContext('2d').drawImage(raw, 0, 0);
+  } catch (e) {}
+  // 이미 1~9999 리셋 상태(성공 완료)면 '인식 중...'으로 바꾸지 않고 상태 유지
+  // (600ms 루프마다 인식하며 상태를 덮어써 '인식 중'에 머무는 문제 방지)
+  const alreadyFull = state && state.min === TOTAL_MIN && state.max === TOTAL_MAX;
+  if (!alreadyFull) {
+    el.captureStatus.textContent = '인식 중...';
+  }
+  try {
+    const engine = window.__ocrEngine;
+    if (!engine) {
+      el.captureStatus.textContent = '엔진이 준비되지 않았습니다.';
+      captureBusy = false;
+      return;
+    }
+
+    // Pass 1: #919191 회색 패널 그룹들 찾기 (1개 또는 2개) — 자동 분리
+    let panels = findGrayPanels(raw);
+    if (!panels || panels.length === 0) {
+      // 회색 패널을 못 찾으면 전체 영역을 좌/우 절반으로 나눠 사용 (fallback)
+      const mid = Math.floor(raw.width / 2);
+      panels = [
+        { x0: 0, y0: 0, x1: mid, y1: raw.height - 1 },
+        { x0: mid + 1, y0: 0, x1: raw.width - 1, y1: raw.height - 1 }
+      ];
+    } else if (panels.length === 1) {
+      // 패널 1개만 잡힘 → 그 안에서 노란 글자 컬럼 프로젝션으로 좌/우 분리
+      const p = panels[0];
+      const pctx = raw.getContext('2d');
+      const pd = pctx.getImageData(p.x0, p.y0, p.x1 - p.x0 + 1, p.y1 - p.y0 + 1).data;
+      const pw = p.x1 - p.x0 + 1, ph = p.y1 - p.y0 + 1;
+      const pcol = new Array(pw).fill(0);
+      const isTxt = function (r, g, b) {
+        return r > 130 && g > 100 && b < 140 && (r - b) > 60 && (g - b) > 50;
+      };
+      for (let y = 0; y < ph; y++) {
+        for (let x = 0; x < pw; x++) {
+          const i = (y * pw + x) * 4;
+          if (isTxt(pd[i], pd[i + 1], pd[i + 2])) pcol[x]++;
+        }
+      }
+      const pruns = [];
+      let pon = false, ps = 0;
+      for (let x = 0; x < pw; x++) {
+        if (pcol[x] > 0 && !pon) { pon = true; ps = x; }
+        else if (pcol[x] === 0 && pon) { pon = false; pruns.push([ps, x - 1]); }
+      }
+      if (pon) pruns.push([ps, pw - 1]);
+      if (pruns.length >= 2) {
+        // 글자 run들을 좌/우 그룹으로: 좌측은 첫 run, 우측은 마지막 run
+        // 가장 큰 글자 사이 간격에서 분할
+        pruns.sort(function (a, b) { return a[0] - b[0]; });
+        let maxGap = -1, cut = -1;
+        for (let i = 1; i < pruns.length; i++) {
+          const g = pruns[i][0] - pruns[i - 1][1];
+          if (g > maxGap) { maxGap = g; cut = i; }
+        }
+        const cutX = Math.floor((pruns[cut - 1][1] + pruns[cut][0]) / 2);
+        panels = [
+          { x0: p.x0 + pruns[0][0], y0: p.y0, x1: p.x0 + cutX, y1: p.y1 },
+          { x0: p.x0 + cutX + 1, y0: p.y0, x1: p.x0 + pruns[pruns.length - 1][1], y1: p.y1 }
+        ];
+      } else {
+        // 분리할 글자 run이 없으면 중앙 분할
+        const mid = Math.floor(pw / 2);
+        panels = [
+          { x0: p.x0, y0: p.y0, x1: p.x0 + mid, y1: p.y1 },
+          { x0: p.x0 + mid + 1, y0: p.y0, x1: p.x1, y1: p.y1 }
+        ];
+      }
+    }
+    // 좌→우 정렬
+    panels.sort(function (a, b) { return a.x0 - b.x0; });
+    // 좌/우 2개만 사용
+    panels = [panels[0], panels[panels.length - 1]];
+
+    // 각 패널을 개별 크롭 → 원본 그대로 OCR (전처리 없음)
+    const nums = [];
+    const recogText = {};
+    const panelCanvases = [];
+    let anyCorrected = false;   // 1↔7 후처리 보정 발생 여부
+    for (let pi = 0; pi < panels.length; pi++) {
+      const panel = cropGrayPanel(raw, panels[pi]);
+      if (!panel) { recogText['p' + pi] = '(크롭 실패)'; continue; }
+      panelCanvases.push(panel);
+      // 패널 하나당 숫자 하나 → 개별 OCR (원본 색상)
+      const r = await recognizeOneNumber(engine, panel);
+      recogText['p' + pi] = r.text;
+      if (r.corrected) anyCorrected = true;
+      if (r.num !== null) nums.push(r.num);
+    }
+
+    if (nums.length < 2) {
+      // 어느 쪽이 실패했는지 진단
+      const diag = [];
+      for (let pi = 0; pi < panels.length; pi++) {
+        diag.push('패널' + (pi + 1) + ':' + (recogText['p' + pi] || '(빈)'));
+      }
+      el.captureStatus.textContent = '인식 실패 [' + diag.join('] [') + '] (패널 ' + panels.length + '개)';
+      captureBusy = false;
+      return;
+    }
+
+    if (nums.length >= 2) {
+      let min = Math.min(nums[0], nums[1]);
+      let max = Math.max(nums[0], nums[1]);
+
+      // 보완: 1~9999 리셋 상태에서 우측 9999를 놓친 경우
+      // 좌측이 1(초기 최솟값)이고, 우측이 9999가 아닌 1~2자리(9/99/999)로 나오면
+      // "9999"의 일부가 잘렸을 가능성이 높음 → 9999로 보정
+      // (게임이 1~9999 리셋 직후이거나, 이전에도 1~9999였다가 새로 리셋된 경우)
+      const wasFull = captureLastMin === TOTAL_MIN && captureLastMax === TOTAL_MAX;
+      const stateWasFull = state && state.min === TOTAL_MIN && state.max === TOTAL_MAX;
+      if (min === TOTAL_MIN && max !== TOTAL_MAX && max < 1000 && (wasFull || !state || stateWasFull)) {
+        el.captureStatus.textContent = '⚠️ 1~9999 감지: 우측 ' + max + ' → 9999로 보정';
+        max = TOTAL_MAX;
+      }
+
+      el.crMin.value = min;
+      el.crMax.value = max;
+
+      // 1~9999 인식 → 초기 셋업 상태로 리셋 (이미 초기 상태면 건너뜀)
+      if (min === TOTAL_MIN && max === TOTAL_MAX) {
+        if (!(state && state.min === TOTAL_MIN && state.max === TOTAL_MAX)) {
+          // 게임 초기화
+          start();
+          el.crMin.value = TOTAL_MIN;
+          el.crMax.value = TOTAL_MAX;
+          if (captureFirstDone) {
+            showAutoIndicator('reset', '1 ~ 9999');
+          }
+        }
+        // 1~9999 = 게임 시작(설정값) → 확률 활성화 + 게임 시작 추적
+        captureGameStarted = true;
+        enableProbDisplay();
+        // 1~9999 리셋 인식 → 자동 모드 UI 활성화 + 상태 명확히 표시
+        if (!captureFirstDone) {
+          captureFirstDone = true;
+          enterAutoMode();
+        }
+        el.captureStatus.textContent = '✅ 1~9999 인식 - 게임이 초기화되었습니다. 값을 바꾸면 자동 추적됩니다';
+        captureLastMin = null;
+        captureLastMax = null;
+        captureBusy = false;
+        return;
+      }
+
+      if (captureLastMin !== null && captureLastMax !== null && state && state.gameState === 'playing') {
+        // 실시간 추적: 이전 범위와 비교해 '값이 큼/작음' 판단
+        const changed = state.min !== min || state.max !== max;
+        if (changed) {
+          // 범위 검증: 새 범위가 이전 범위와 부분적으로라도 겹치고 1~9999 안쪽이면 정상
+          // 6099~9999 (이전 1~4999) 처럼 전혀 안 겹치면 일시 오류로 간주
+          const overlapsPrev = min <= captureLastMax && max >= captureLastMin;
+          const inRange = min >= TOTAL_MIN && max <= TOTAL_MAX;
+          if (!overlapsPrev || !inRange) {
+            el.captureStatus.textContent = '⚠️ 인식 오류 의심: ' + min + ' ~ ' + max + ' (이전 상태 유지)';
+            captureLastMin = min;
+            captureLastMax = max;
+            captureBusy = false;
+            return;
+          }
+          let autoLabel = '';
+          if (min > captureLastMin && max === captureLastMax) {
+            // min만 올라감 → 정답이 추측보다 큼
+            pushHistory('bigger', '⬆️ 값이 큼 (자동)', 'res-big');
+            autoLabel = '값이 큼';
+            showAutoIndicator('up', autoLabel);
+          } else if (max < captureLastMax && min === captureLastMin) {
+            // max만 내려감 → 정답이 추측보다 작음
+            pushHistory('smaller', '⬇️ 값이 작음 (자동)', 'res-small');
+            autoLabel = '값이 작음';
+            showAutoIndicator('down', autoLabel);
+          } else if (min > captureLastMin || max < captureLastMax) {
+            // 둘 다 변함 또는 부분 변화
+            pushHistory('auto', '📡 범위 동기화', 'res-ok');
+            autoLabel = '범위 동기화';
+            showAutoIndicator('sync', autoLabel);
+          }
+          // 새 범위 직접 반영 (게임 화면과 정확히 일치) + 자릿수 이동 표시
+          // 범위가 좁혀졌으면 시도 횟수 증가 → 확률 상승
+          state.prevGuess = state.guess;
+          state.attempt++;
+          state.min = min;
+          state.max = max;
+          state.guess = getNextGuess(min, max);
+          render();
+          popGuess();
+          updateProbDisplay(state.attempt);
+          renderRewardPanel();
+          el.captureStatus.textContent = autoLabel + ' 자동 → ' + min + ' ~ ' + max;
+        } else {
+          // 변화 없음 — 단, 1↔7 후처리 보정이 있었다면 자릿수 표시 갱신 필요
+          if (anyCorrected && state) {
+            state.min = min;
+            state.max = max;
+            state.guess = getNextGuess(min, max);
+            render();
+          }
+          el.captureStatus.textContent = '동기화: ' + min + ' ~ ' + max + ' (변화 없음)';
+        }
+      } else {
+        // 첫 인식(이전 상태 없음) — state 갱신은 아래에서 처리
+        // 첫 시작이 1~9999(설정값)가 아니면 확률 비활성화
+        // (1~9999로 리셋되면 위의 리셋 블록에서 captureGameStarted=true + 활성화됨)
+        if (!captureGameStarted) {
+          disableProbDisplay();
+        }
+        el.captureStatus.textContent = '동기화: ' + min + ' ~ ' + max;
+      }
+      captureLastMin = min;
+      captureLastMax = max;
+
+      // state가 없으면(게임 미시작) custom 모드로 초기화
+      // (이미 갱신된 state.min/max/guess는 유지 — applyCustomRange로 재생성하면 기록이 날아감)
+      if (!state) {
+        state = {
+          min: min,
+          max: max,
+          guess: getNextGuess(min, max),
+          prevGuess: null,
+          attempt: 1,
+          limit: Infinity,
+          custom: true,
+          history: [],
+          undoStack: [],
+          gameState: 'playing'
+        };
+        render();
+        popGuess();
+        updateProbDisplay(state.attempt);
+        renderRewardPanel();
+      }
+      // 팝업은 유지: 실시간 추적을 계속 보여줌. 사용자가 닫으면 백그라운드 추적.
+      if (!captureFirstDone) {
+        captureFirstDone = true;
+        enterAutoMode();
+        el.captureStatus.textContent = '✅ 인식 완료 - 실시간 추적 중 (닫으면 백그라운드)';
+      }
+      // 1↔7 후처리 보정이 있었다면 상태에 표시 (화면 표시는 render()로 갱신됨)
+      if (anyCorrected) {
+        el.captureStatus.textContent += ' · 7→1 보정됨';
+      }
+      // 추적 배지 표시 (팝업 열려 있어도 준비 상태)
+      el.trackBadge.classList.remove('hidden');
+    }
+  } catch (e) {
+    el.captureStatus.textContent = '인식 오류: ' + (e && e.message ? e.message : String(e));
+  }
+  captureBusy = false;
+}
+
+// 드래그 영역 선택 - 좌표는 video 표시 영역 기준으로 통일
+function updateStageCache() {
+  const sRect = el.captureStage.getBoundingClientRect();
+  const vRect = el.captureVideo.getBoundingClientRect();
+  // video가 숨겨져 있어 크기가 0이면 기존 캐시 유지 (백그라운드 추적 시)
+  if (vRect.width <= 0 || vRect.height <= 0 || sRect.width <= 0 || sRect.height <= 0) {
+    return;
+  }
+  captureStageSize = {
+    w: sRect.width,
+    h: sRect.height,
+    vw: vRect.width,
+    vh: vRect.height,
+    dx: vRect.left - sRect.left, // video의 스테이지 내 x 오프셋 (레터박스)
+    dy: vRect.top - sRect.top     // video의 스테이지 내 y 오프셋 (레터박스)
+  };
+}
+
+// 비율 기반 captureRegion → video 표시 픽셀 좌표로 오버레이(박스+분리선) 재계산
+// 브라우저 창 크기가 바뀌어 video 표시 크기가 변해도 동기화 유지
+function syncCaptureOverlay() {
+  if (!captureRegion || !el.captureVideo.videoWidth) return;
+  const vRect = el.captureVideo.getBoundingClientRect();
+  if (vRect.width <= 0 || vRect.height <= 0) return;
+  const left = captureRegion.left * vRect.width;
+  const top = captureRegion.top * vRect.height;
+  const width = captureRegion.width * vRect.width;
+  const height = captureRegion.height * vRect.height;
+  el.captureBox.style.left = left + 'px';
+  el.captureBox.style.top = top + 'px';
+  el.captureBox.style.width = width + 'px';
+  el.captureBox.style.height = height + 'px';
+  el.captureBox.classList.add('active');
+}
+
+// 브라우저 창 크기 변경 → video 표시 크기 변경 → 오버레이 재동기화
+window.addEventListener('resize', function () {
+  syncCaptureOverlay();
+  updateStageCache();
+});
+
+el.captureStage.addEventListener('mousedown', function (e) {
+  if (!el.captureVideo.videoWidth) return;
+  const rect = el.captureStage.getBoundingClientRect();
+  const vRect = el.captureVideo.getBoundingClientRect();
+  captureDragging = true;
+  // capture-box는 video 기준 absolute → 시작 좌표도 video 기준으로
+  captureStart = { x: e.clientX - vRect.left, y: e.clientY - vRect.top };
+  el.captureBox.classList.add('active');
+  // 마그니파이어 표시 + 커서 위치로 이동
+  el.captureMagnifier.classList.remove('hidden');
+  updateMagnifier(e);
+});
+
+// 마그니파이어: 커서 오른쪽 위에 커서 주변 video 영역을 확대 표시
+function updateMagnifier(e) {
+  if (!el.captureVideo.videoWidth) return;
+  const vRect = el.captureVideo.getBoundingClientRect();
+  if (vRect.width <= 0 || vRect.height <= 0) return;
+  // 커서의 video 기준 좌표
+  const vx = e.clientX - vRect.left;
+  const vy = e.clientY - vRect.top;
+  // video 표시 픽셀 → 원본 픽셀 비율
+  const sx = el.captureVideo.videoWidth / vRect.width;
+  const sy = el.captureVideo.videoHeight / vRect.height;
+  // 원본에서 커서 주변 100x100 영역 → 200x200 (2배 확대, 넓게 보임)
+  const R = 100;
+  const c = el.magCanvas;
+  const cctx = c.getContext('2d');
+  cctx.imageSmoothingEnabled = false;
+  const srcX = Math.max(0, Math.min(el.captureVideo.videoWidth - 1, vx * sx - R / 2));
+  const srcY = Math.max(0, Math.min(el.captureVideo.videoHeight - 1, vy * sy - R / 2));
+  const srcW = Math.min(R, el.captureVideo.videoWidth - srcX);
+  const srcH = Math.min(R, el.captureVideo.videoHeight - srcY);
+  cctx.clearRect(0, 0, c.width, c.height);
+  cctx.drawImage(el.captureVideo, srcX, srcY, srcW, srcH, 0, 0, c.width, c.height);
+  // 가로/세로 가이드선 (중앙 십자선)
+  cctx.strokeStyle = 'rgba(255, 215, 0, 0.9)';
+  cctx.lineWidth = 1;
+  cctx.beginPath();
+  cctx.moveTo(c.width / 2, 0);
+  cctx.lineTo(c.width / 2, c.height);
+  cctx.moveTo(0, c.height / 2);
+  cctx.lineTo(c.width, c.height / 2);
+  cctx.stroke();
+  // 확대 뷰 위치: 커서 오른쪽 위 (화면 밖으로 나가지 않게)
+  const M = 210;
+  let mx = e.clientX + 20;
+  let my = e.clientY - 20 - M;
+  if (mx + M > window.innerWidth) mx = e.clientX - 20 - M;
+  if (my < 0) my = e.clientY + 20;
+  el.captureMagnifier.style.left = mx + 'px';
+  el.captureMagnifier.style.top = my + 'px';
+}
+
+// 커서가 캡처 스테이지 위인지 판별
+function isCursorOverStage(e) {
+  const sRect = el.captureStage.getBoundingClientRect();
+  return e.clientX >= sRect.left && e.clientX <= sRect.right
+    && e.clientY >= sRect.top && e.clientY <= sRect.bottom;
+}
+
+window.addEventListener('mousemove', function (e) {
+  // 호버 시에도 마그니파이어 표시 (드래그 중이 아니어도)
+  if (el.captureVideo.videoWidth && isCursorOverStage(e)) {
+    el.captureMagnifier.classList.remove('hidden');
+    updateMagnifier(e);
+  } else if (!captureDragging) {
+    el.captureMagnifier.classList.add('hidden');
+  }
+  if (!captureDragging || !captureStart) return;
+  const vRect = el.captureVideo.getBoundingClientRect();
+  const x = e.clientX - vRect.left;
+  const y = e.clientY - vRect.top;
+  const left = Math.min(captureStart.x, x);
+  const top = Math.min(captureStart.y, y);
+  const width = Math.abs(x - captureStart.x);
+  const height = Math.abs(y - captureStart.y);
+  el.captureBox.style.left = left + 'px';
+  el.captureBox.style.top = top + 'px';
+  el.captureBox.style.width = width + 'px';
+  el.captureBox.style.height = height + 'px';
+});
+
+window.addEventListener('mouseup', function () {
+  if (!captureDragging) return;
+  captureDragging = false;
+  // 드래그 종료 시 마그니파이어 숨김 (커서가 스테이지 위면 mousemove가 다시 표시)
+  el.captureMagnifier.classList.add('hidden');
+  const left = parseFloat(el.captureBox.style.left) || 0;
+  const top = parseFloat(el.captureBox.style.top) || 0;
+  const width = parseFloat(el.captureBox.style.width) || 0;
+  const height = parseFloat(el.captureBox.style.height) || 0;
+  if (width < 10 || height < 10) {
+    el.captureBox.classList.remove('active');
+    el.captureStatus.textContent = '영역이 너무 작습니다. 다시 드래그하세요.';
+    return;
+  }
+  // capture-box는 video 표시 픽셀 → video 표시 크기로 나눠 0~1 비율로 저장
+  // (video 크기가 변해도 정확, 백그라운드 추적 안정)
+  const vRect = el.captureVideo.getBoundingClientRect();
+  if (vRect.width <= 0 || vRect.height <= 0) {
+    el.captureStatus.textContent = '영역 계산 실패. 다시 시도하세요.';
+    return;
+  }
+  captureRegion = {
+    left: left / vRect.width,
+    top: top / vRect.height,
+    width: width / vRect.width,
+    height: height / vRect.height
+  };
+  updateStageCache();
+  syncCaptureOverlay();
+  // 잘못 지정했을 때 재지정할 수 있도록 버튼 표시
+  el.btnRecapture.classList.remove('hidden');
+  el.captureStatus.textContent = '영역 지정 완료 - 인식 중...';
+  startCaptureLoop();
+  recognizeRegion();
+});
+
+// 실시간 재인식 루프 (값이 변하면 자동 큼/작음)
+function startCaptureLoop() {
+  if (captureTimer) clearInterval(captureTimer);
+  if (capturePaused) return;
+  captureTimer = setInterval(function () {
+    if (captureRegion && el.captureVideo.videoWidth && !captureBusy && !capturePaused) {
+      recognizeRegion();
+    }
+  }, 600);
+}
+
+// 일시정지: 추적 루프만 중지 (스트림 유지)
+function pauseCaptureTracking() {
+  capturePaused = true;
+  if (captureTimer) { clearInterval(captureTimer); captureTimer = null; }
+  el.btnPause.textContent = '▶️ 재개';
+  el.autoLabel.textContent = '일시정지됨';
+  el.autoIcon.textContent = '⏸️';
+}
+
+// 재개: 추적 루프 재시작
+function resumeCaptureTracking() {
+  capturePaused = false;
+  el.btnPause.textContent = '⏸ 일시정지';
+  showAutoIndicator('sync', '실시간 추적 중');
+  startCaptureLoop();
+  if (captureRegion) recognizeRegion();
+}
+
+// 일시정지/재개 토글
+el.btnPause.addEventListener('click', function () {
+  if (capturePaused) resumeCaptureTracking();
+  else pauseCaptureTracking();
+});
+
+// 정지: 스트림 완전 종료 + 자동 모드 해제
+el.btnStop.addEventListener('click', stopCaptureTracking);
+
+// 캡처 버튼: 모델이 없으면 로드, 있으면 바로 팝업 오픈 + 자동 화면 선택
+el.btnCapture.addEventListener('click', function () {
+  const doOpen = function () {
+    openCaptureModal();
+    // 자동으로 화면 선택창을 띄우지 않음 — 사용자가 캡처 모달 안의 '화면 선택' 버튼으로 직접 시작
+  };
+  if (window.__ocrReady) {
+    doOpen();
+    return;
+  }
+  el.btnCapture.disabled = true;
+  showModelLoading('AI 모델 로딩 중... (최초 약 20MB)');
+  loadOcrEngine().then(function () {
+    hideModelLoading();
+    el.btnCapture.disabled = false;
+    doOpen();
+  }).catch(function (e) {
+    hideModelLoading();
+    el.btnCapture.disabled = false;
+    alert('AI 모델 로딩 실패: ' + (e && e.message ? e.message : e));
+  });
+});
+
+el.captureOverlay.addEventListener('click', closeCaptureModal);
+el.btnCaptureClose.addEventListener('click', closeCaptureModal);
+// 캡처 화면 다시 선택: 기존 스트림/영역 정리 후 새 화면 선택창
+el.btnRecapture.addEventListener('click', function () {
+  captureRegion = null;
+  captureLastMin = null;
+  captureLastMax = null;
+  captureFirstDone = false;
+  capturePaused = false;
+  el.btnPause.textContent = '⏸ 일시정지';
+  el.captureBox.classList.remove('active');
+  el.btnRecapture.classList.add('hidden');
+  startScreenCapture(); // 기존 스트림 중지 + 새 화면 선택창
+});
+// 사용법 팝업 열기/닫기
+el.btnCaptureHelp.addEventListener('click', function () {
+  el.captureHelpModal.classList.remove('hidden');
+});
+el.captureHelpOverlay.addEventListener('click', function () {
+  el.captureHelpModal.classList.add('hidden');
+});
+el.btnCaptureHelpClose.addEventListener('click', function () {
+  el.captureHelpModal.classList.add('hidden');
+});
+// 안내 텍스트(가이드) 클릭 → 화면 선택창 (캡처 시작)
+el.captureGuide.addEventListener('click', function () {
+  if (!captureStream) startScreenCapture();
+  else el.captureStatus.textContent = '이미 캡처 중입니다.';
+});
+// 확인 버튼: 팝업 닫고 백그라운드 추적 시작 (캡처는 계속)
+el.btnCaptureConfirm.addEventListener('click', function () {
+  closeCaptureModal();
+});
+// 추적 배지 클릭 → 추적 중지
+el.trackBadge.addEventListener('click', stopCaptureTracking);
+
+// ---------- 이벤트 ----------
+
+el.btnBigger.addEventListener('click', bigger);
+el.btnAnswer.addEventListener('click', answer);
+el.btnSmaller.addEventListener('click', smaller);
+el.btnUndo.addEventListener('click', undoLast);
+el.btnReward.addEventListener('click', openRewardPanel);
+el.btnRewardClose.addEventListener('click', closeRewardPanel);
+el.btnRewardAll.addEventListener('click', openRewardModal);
+el.btnModalClose.addEventListener('click', closeRewardModal);
+el.modalOverlay.addEventListener('click', closeRewardModal);
+el.crApply.addEventListener('click', applyCustomRange);
+el.crMin.addEventListener('keydown', function (e) { if (e.key === 'Enter') applyCustomRange(); });
+el.crMax.addEventListener('keydown', function (e) { if (e.key === 'Enter') applyCustomRange(); });
+el.btnRestart.addEventListener('click', function () {
+  el.gameScreen.classList.remove('hidden');
+  el.resultScreen.classList.add('hidden');
+  start();
+});
+
+// 결과 복사
+el.btnShare.addEventListener('click', function () {
+  const text = lastShareText || '🔐 스핑크스의 황금 금고';
+  const done = function () {
+    el.btnShare.textContent = '✅ 복사됨';
+    setTimeout(function () { el.btnShare.textContent = '📋 결과 복사'; }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text); done(); });
+  } else {
+    fallbackCopy(text); done();
+  }
+});
+
+// 키보드 단축키
+window.addEventListener('keydown', function (e) {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!el.resultScreen.classList.contains('hidden')) return; // 결과 화면에선 무시
+  if (e.key === 'ArrowUp') { e.preventDefault(); bigger(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); smaller(); }
+  else if (e.key === 'Enter') { e.preventDefault(); answer(); }
+  else if (e.key === 'Backspace') { e.preventDefault(); undoLast(); }
+});
+
+// 결과 복사 폴백
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+// 플레이 기록 초기화
+el.btnStatsClear.addEventListener('click', function () {
+  saveStats({ games: 0, wins: 0, winAttemptSum: 0, best: null, dist: [], history: [] });
+  renderPlayLog();
+});
+
+renderStats();
+renderPlayLog();
+start();
+</script>
+</body>
+</html>
